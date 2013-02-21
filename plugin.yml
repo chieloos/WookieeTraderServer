@@ -1,0 +1,14 @@
+name: WookieeTraderServer
+main: uk.co.chieloos.wookieetraderserver.WookieeTrader
+version: 0.1
+depend: [Vault, SQLibrary]
+
+commands:
+  wt:
+      description: Main WookieeTrader command.
+      usage: /wt [args]
+      permission: <plugin name>.wt
+      permission-message: You don't have <permission>
+  wt help:
+      description: Displays the help text.
+      usage: /wt help [command]
