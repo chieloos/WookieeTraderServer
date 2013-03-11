@@ -1,0 +1,141 @@
+name: WookieeTraderServer
+main: uk.co.chieloos.wookieetraderserver.WookieeTrader
+version: 0.1
+authors: [chieloos]
+website: http://chieloos.co.uk/wookieetrader
+depend: [Vault, SQLibrary, WookieeItemNames]
+description: Bukkit trading plugin.
+
+commands:
+  wt:
+      description: Main WookieeTrader command.
+      usage: /wt [args]
+      permission: WookieeTraderServer.wt
+      permission-message: You don't have <permission>
+  wt-admin:
+      description: Admin WookieeTrader command.
+      usage: /wt-admin [args]
+      permission: WookieeTraderServer.wt-admin
+      permission-message: You don't have <permission>
+      
+permissions:
+  WookieeTraderServer.*:
+    description: Gives access to all WookieeTraderServer commands.
+    default: op
+    children:
+      WookieeTraderServer.wt.*: true
+      WookieeTraderServer.wt-admin.*: true
+      WookieeTraderServer.sign.*: true
+      
+  WookieeTraderServer.wt.*:
+    description: Gives access to all non admin WookieeTraderServer commands.
+    default: op
+    children:
+      WookieeTraderServer.wt.basic.*: true
+      WookieeTraderServer.wt.mailbox.*: true
+      WookieeTraderServer.wt.cancel.*: true
+      WookieeTraderServer.wt.sign.*: true
+      
+  WookieeTraderServer.wt-admin.*:
+    description: Gives access to admin WookieeTraderServer commands
+    default: op
+    children:
+      WookieeTraderServer.wt-admin.stop.*: true
+    
+  WookieeTraderServer.wt.basic.*:
+    description: Gives access to all basic WookieeTraderServer commands
+    default: op
+    children:
+      WookieeTraderServer.wt.basic.buy: true
+      WookieeTraderServer.wt.basic.sell: true
+      WookieeTraderServer.wt.basic.search: true
+      WookieeTraderServer.wt.basic.confirm: true
+      WookieeTraderServer.wt.basic.help: true
+      WookieeTraderServer.wt.basic.version: true
+      WookieeTraderServer.wt.basic.page: true
+      
+  WookieeTraderServer.wt.cancel.*:
+    description: Gives access to all cancel WookieeTraderServer commands
+    default: op
+    children:
+      WookieeTraderServer.wt.cancel.self: true
+      WookieeTraderServer.wt.cancel.other: true
+      
+  WookieeTraderServer.wt.mailbox.*:
+    description: Gives access to all mailbox WookieeTraderServer commands
+    default: op
+    children:
+      WookieeTraderServer.wt.mailbox.self: true
+      WookieeTraderServer.wt.mailbox.other: true
+      WookieeTraderServer.wt.mailbox.list: true
+      
+  WookieeTraderServer.sign.*:
+    description: Gives access to all sign permissions
+    default: op
+    children:
+      WookieeTraderServer.sign.place: true
+      WookieeTraderServer.sign.remove: true
+      WookieeTraderServer.sign.use: true
+      
+  WookieeTraderServer.wt-admin.stop.*:
+    description: Gives access to all stop commands
+    default: op
+    children:
+      WookieeTraderServer.wt-admin.stop.once: true
+      WookieeTraderServer.wt-admin.stop.permanent: true
+      
+  WookieeTraderServer.wt.basic.buy:
+    description: Gives access to buying trades
+    default: op
+  WookieeTraderServer.wt.basic.sell:
+    description: Gives access to selling trades
+    default: op
+  WookieeTraderServer.wt.basic.search:
+    description: Gives access to searching trades
+    default: op
+  WookieeTraderServer.wt.basic.confirm:
+    description: Gives access to confirm commands
+    default: op
+  WookieeTraderServer.wt.basic.help:
+    description: Gives access to help commands
+    default: op
+  WookieeTraderServer.wt.basic.version:
+    description: Gives access to version commands
+    default: op
+  WookieeTraderServer.wt.basic.page:
+    description: Gives access to version commands
+    default: op
+    
+  WookieeTraderServer.wt.cancel.self:
+    description: Gives access to cancelling your own trades
+    default: op
+  WookieeTraderServer.wt.cancel.other:
+    description: Gives access to cancelling other peoples trades
+    default: op
+    
+  WookieeTraderServer.wt.mailbox.self:
+    description: Gives access to opening your own mailbox by command
+    default: op
+  WookieeTraderServer.wt.mailbox.other:
+    description: Gives access to opening other peoples mailboxes
+    default: op
+  WookieeTraderServer.wt.mailbox.list:
+    description: Gives access to listing all mailboxes
+    default: op
+    
+  WookieeTraderServer.sign.place:
+    description: Gives access to placing WookieeTraderServer signs
+    default: op
+  WookieeTraderServer.sign.remove:
+    description: Gives access to removing WookieeTraderServer signs
+    default: op
+  WookieeTraderServer.sign.use:
+    description: Gives access to using WookieeTraderServer signs
+    default: op
+    
+  WookieeTraderServer.wt-admin.stop.once:
+    description: Disables WookieeTraderServer until next server reload or restart
+    default: op
+  WookieeTraderServer.wt-admin.stop.permanent:
+    description: Disables WookieeTraderServer. Will not load again
+    default: op
