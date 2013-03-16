@@ -53,7 +53,6 @@ public class WookieeCommandExecutor implements CommandExecutor {
         cmdlist.add("version");     //7
         cmdlist.add("page");        //8
         cmdlist.add("help");        //9
-        cmdlist.add("test");        //10
     }
 
     public String getItemName(String itemname) {
@@ -827,90 +826,6 @@ public class WookieeCommandExecutor implements CommandExecutor {
                         sender.sendMessage(ChatColor.RED + "Didn't have permission to do that.");
                         return true;
                     }
-                case 10:     //test
-                    boolean delete = true;
-                    ItemStack inhand = player.getItemInHand();
-                    String name = inhand.getType().name();
-                    short durability = inhand.getDurability();
-                    ItemMeta inhandmeta = inhand.getItemMeta();
-                    ItemStack newitem = new ItemStack(Material.getMaterial(name));
-                    if (inhand.getType().equals(Material.ENCHANTED_BOOK)) {
-                        EnchantmentStorageMeta inhandenchantmeta = (EnchantmentStorageMeta) inhand.getItemMeta();
-                        String enchants = enchToStr(inhandenchantmeta.getStoredEnchants());
-                        sender.sendMessage(enchants);
-                        EnchantmentStorageMeta newitemmeta = (EnchantmentStorageMeta) new ItemStack(Material.ENCHANTED_BOOK).getItemMeta();
-                        String[] encharr = enchants.split(" ");
-                        String[] eachench;
-                        int count = encharr.length;
-                        //plugin.getLogger().info("" + count);
-                        int l = 0;
-                        while (count > l) {
-                            eachench = encharr[l].split("-");
-                            newitemmeta.addStoredEnchant(Enchantment.getByName(eachench[0]), Integer.parseInt(eachench[1]), enabled);
-                            l++;
-                        }
-                        newitem.setItemMeta(newitemmeta);
-                    }
-                    ItemMeta newitemmeta = newitem.getItemMeta();
-                    newitemmeta.setDisplayName(inhandmeta.getDisplayName());
-                    newitem.setItemMeta(newitemmeta);
-                    newitem.setAmount(inhand.getAmount());
-                    newitem.setDurability(durability);
-                    boolean matches = false;
-                    sender.sendMessage(newitemmeta.toString());
-                    sender.sendMessage("---------------------");
-                    sender.sendMessage(inhand.getItemMeta().toString());
-
-                    if (inhand.getItemMeta().equals(newitem.getItemMeta())) {
-                        sender.sendMessage("meta is the same");
-                    }
-                    if (inhand.getItemMeta() instanceof BookMeta
-                            || inhand.getItemMeta() instanceof FireworkMeta
-                            || inhand.getItemMeta() instanceof MapMeta
-                            || inhand.getItemMeta() instanceof FireworkEffectMeta
-                            || inhand.getItemMeta() instanceof SkullMeta
-                            || inhand.getItemMeta() instanceof LeatherArmorMeta) {
-                        sender.sendMessage("Unsupported item");
-                        delete = false;
-                    }
-                    if (inhand.equals(newitem)) {
-                        matches = true;
-                    }
-                    if (inhand.getItemMeta().hasDisplayName()) {
-                        sender.sendMessage("Custom Name:");
-                        sender.sendMessage(inhand.getItemMeta().getDisplayName());
-
-                    }
-                    ItemStack toberemoved = new ItemStack(Material.getMaterial(name), inhand.getAmount());
-                    toberemoved.addEnchantments(inhand.getEnchantments());
-                    toberemoved.setDurability(inhand.getDurability());
-                    toberemoved.setItemMeta(inhand.getItemMeta());
-                    if (delete) {
-                        Map<Integer, ItemStack> error = player.getInventory().removeItem(toberemoved);
-                        player.getInventory().addItem(newitem);
-                    }
-                    int howmanytotake = 3;
-                    Map<Integer, ItemStack> error = player.getInventory().removeItem(new ItemStack(Material.APPLE, howmanytotake));
-                    if (!error.isEmpty()) {
-                        int size = error.size();
-                        int v = 0;
-                        int taken;
-                        int toreturn;
-                        ItemStack is;
-                        while (size > v) {
-                            is = error.get(v);
-                            taken = is.getAmount();
-                            toreturn = toberemoved.getAmount() - taken;
-                            if (toreturn > 0) {
-                                is.setAmount(toreturn);
-                                player.getInventory().addItem(is);
-                            }
-                            sender.sendMessage(is.toString());
-                            v++;
-                        }
-
-                    }
-                    sender.sendMessage("itemname: " + name + " durability: " + durability + " matches: " + matches);
             }
         }
         return false;
