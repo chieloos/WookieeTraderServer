@@ -1,77 +1,56 @@
 package uk.co.chieloos.wookieetraderserver;
 
 import java.util.logging.Level;
-import net.milkbowl.vault.chat.Chat;
-import net.milkbowl.vault.economy.Economy;
-import net.milkbowl.vault.permission.Permission;
+
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import uk.co.chieloos.wookieetraderserver.economy.WookieeEcon;
 
 public final class WookieeTrader extends JavaPlugin {
 
-    public static Economy econ = null;
-    public static Permission perms = null;
-    public static Chat chat = null;
     public final WookieeTrader plugin = this;
-    public final WookieeDatabase wdb = new WookieeDatabase(this);
-    public final WookieeConfig wconf = new WookieeConfig(this);
+    public final WookieeConfig wcfg = new WookieeConfig(this);
+    public final WookieeEcon wecon = new WookieeEcon(this);
+    public final WookieePerm wperm = new WookieePerm(this);
+    public final WookieeDatabase wdb = new WookieeDatabase(this, wecon);
+    protected static final String SETTINGS_VERSION = "0.1a";
+    protected PluginManager manager;
+    protected PluginDescriptionFile pdf;
 
     @Override
     public void onEnable() {
-        
-        if (!setupEconomy()) {
-            getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
+        if (getConfig().get("disabled").equals("true")){
+            getLogger().log(Level.SEVERE, "WookieeTraderServer has been disabled in the WookieTraderServer/config.yml");
+            getPluginLoader().disablePlugin(this);
+            return;
+        }
+        if (getServer().getPluginManager().getPlugin("WookieeItemNames") == null || getServer().getPluginManager().getPlugin("SQLibrary") == null){
+            getLogger().log(Level.SEVERE, "Required dependency not found. Disabling {0}", pdf.getName());
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        setupPermissions();
-        //setupChat();
-        
-        PluginDescriptionFile pdf = this.getDescription();
-        getLogger().log(Level.INFO, "Enabled {0} v{1}", new Object[]{pdf.getName(), pdf.getVersion()});
-        PluginManager manager = this.getServer().getPluginManager();
-        manager.registerEvents(new WookieeCommandSign(), this);
-        manager.registerEvents(new WookieeChestListener(this, wdb), this);
-        getCommand("wt").setExecutor(new WookieeCommandExecutor(this, wdb));
+        pdf = this.getDescription();
+        if (!wecon.setupEconomy()) {
+            getLogger().log(Level.SEVERE, "No Vault dependency found. Disabling {0}", pdf.getName());
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+            //wecon.setupWookonomy();
+        }
+        if (!wperm.setupPermissions()){
+        }
+        manager = this.getServer().getPluginManager();
+        wcfg.loadConfig();
+        manager.registerEvents(new WookieeCommandSign(this, wperm), this);
+        manager.registerEvents(new WookieeChestListener(this, wdb, wperm), this);
+        getCommand("wt").setExecutor(new WookieeCommandExecutor(this, wdb, wecon, wcfg, wperm));
+        getCommand("wt-admin").setExecutor(new WookieeAdminCE(this, wdb, wecon, wcfg, wperm));
         wdb.sqlConnection();
-        getLogger().info(plugin.getDataFolder().getAbsolutePath());
-        getConfig().options().copyDefaults(true);
-        getConfig().options().configuration().getString("test");
-        saveConfig();
-        //getLogger().log(Level.INFO, "test: {0}", getConfig().options().configuration().getString("test"));
+        getLogger().log(Level.INFO, "Enabled {0} v{1}", new Object[]{pdf.getName(), pdf.getVersion()});
     }
 
     @Override
     public void onDisable() {
-        //wdb.sqLite.close();
-        getLogger().info("WookieeTrader has been disabled.");
-    }
-    
-    private boolean setupEconomy() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null) {
-            getLogger().info("vault == null");
-            return false;
-        }
-        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        if (rsp == null) {
-            getLogger().info("rsp == null");
-            return false;
-        }
-        econ = rsp.getProvider();
-        return econ != null;
-    }
-
-    private boolean setupChat() {
-        RegisteredServiceProvider<Chat> rsp = getServer().getServicesManager().getRegistration(Chat.class);
-        chat = rsp.getProvider();
-        return chat != null;
-    }
-
-    private boolean setupPermissions() {
-        RegisteredServiceProvider<Permission> rsp = getServer().getServicesManager().getRegistration(Permission.class);
-        perms = rsp.getProvider();
-        return perms != null;
     }
 }

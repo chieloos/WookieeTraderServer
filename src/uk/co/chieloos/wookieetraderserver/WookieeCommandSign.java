@@ -1,37 +1,49 @@
 package uk.co.chieloos.wookieetraderserver;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.plugin.Plugin;
 
-class WookieeCommandSign implements Listener {
+public class WookieeCommandSign implements Listener {
+
+    private Plugin plugin;
+    private WookieePerm wperm;
+
+    public WookieeCommandSign(Plugin plugin, WookieePerm wperm) {
+        this.plugin = plugin;
+        this.wperm = wperm;
+    }
 
     @EventHandler(priority = EventPriority.HIGH)
-    public void onBlockPlace(BlockPlaceEvent event) {
+    public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
-        //player.sendMessage("You placed "+event.getBlock().getType());
-        if (event.isCancelled()) {
-            return;
-        }
+        if (event.getBlock().getType() == Material.SIGN_POST || event.getBlock().getType() == Material.WALL_SIGN) {
+            Sign sign = (Sign) event.getBlock().getState();
+            if ("[WTrader]".equals(sign.getLine(0)) && !wperm.playerHasPermission(player, "WookieeTraderServer.sign.remove")) {
+                if (!event.isCancelled()) {
+                    event.setCancelled(true);
+                    player.sendMessage(ChatColor.RED + "You don't have permission to break that sign.");
+                }
+            }
 
-        if (event.getBlock().getType() == Material.SIGN_POST) {
-            //event.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onSignChange(SignChangeEvent event) {
         Player player = event.getPlayer();
-        //player.sendMessage("You changed the sign. "+event.getLine(0));
-        if ("[WTrader]".equals(event.getLine(0))) {
-            //event.setCancelled(true);
-            player.sendMessage("You aren't allowed to make that sign.");
-
+        if ("[WTrader]".equals(event.getLine(0)) && !wperm.playerHasPermission(player, "WookieeTraderServer.sign.place")) {
+            if (event.isCancelled()) {
+                event.setCancelled(true);
+                player.sendMessage(ChatColor.RED + "You don't have permission to make that sign.");
+            }
         }
-
     }
 }

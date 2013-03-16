@@ -1,15 +1,15 @@
 package uk.co.chieloos.wookieetraderserver;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import lib.PatPeter.SQLibrary.SQLite;
-import net.milkbowl.vault.economy.Economy;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
+import uk.co.chieloos.wookieetraderserver.economy.WookieeEcon;
+
 
 /*
  * wookietrader: enchants durability timedate player amount cost id itemid
@@ -20,10 +20,11 @@ public class WookieeDatabase {
 
     public SQLite sqLite;
     private WookieeTrader plugin;
-    private Economy econ = WookieeTrader.econ;
-    
-    public WookieeDatabase(WookieeTrader plugin) {
+    private WookieeEcon wecon;
+
+    public WookieeDatabase(WookieeTrader plugin, WookieeEcon wecon) {
         this.plugin = plugin;
+        this.wecon = wecon;
     }
 
     public String timeDate() {
@@ -37,11 +38,11 @@ public class WookieeDatabase {
         sqLite = new SQLite(plugin.getLogger(), "wookieeauction", "WT", plugin.getDataFolder().getAbsolutePath());
         try {
             sqLite.open();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             plugin.getLogger().info(e.getMessage());
             plugin.getPluginLoader().disablePlugin(plugin);
         }
-        
+
     }
 
     public void sqlTableCheck() {
@@ -54,7 +55,7 @@ public class WookieeDatabase {
         try {
             ResultSet var1 = sqLite.query("SELECT * FROM wookieetrader WHERE id='" + id + "' LIMIT 1");
             if (var1.next()) {
-                String[] var2 = {var1.getString("id"), var1.getString("itemid"), var1.getString("amount"), var1.getString("cost"), var1.getString("durability"), var1.getString("enchants"), var1.getString("player")};
+                String[] var2 = {var1.getString("id"), var1.getString("itemid"), var1.getString("amount"), var1.getString("cost"), var1.getString("durability"), var1.getString("enchants"), var1.getString("player"), var1.getString("customname")};
                 //plugin.getLogger().log(Level.INFO, "Index: {0}", var2[0]);
                 var1.close();
                 return var2;
@@ -62,7 +63,7 @@ public class WookieeDatabase {
                 //plugin.getLogger().info("Index not found.");
             }
             var1.close();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             plugin.getLogger().info(e.getMessage());
         }
 
@@ -70,23 +71,38 @@ public class WookieeDatabase {
         return blank;
     }
 
-    public boolean sqlSell(String player, int itemid, int cost, int stack, String enchants, int durability) {
-        String query= "";
+    public boolean sqlSell(String player, int itemid, int cost, int stack, String enchants, int durability, String customname) {
+        String query = "";
+        PreparedStatement ps = null;
         String td = timeDate();
         try {
-            //check chest for item            
-            ResultSet var1 = sqLite.query("SELECT * FROM wookieetrader WHERE player='" + player + "' AND itemid='" + itemid + "' AND durability='" + durability + "'  AND cost='" + cost + "'");
+            //check chest for item
+            ResultSet var1 = sqLite.query("SELECT * FROM wookieetrader WHERE player='" + player + "' AND itemid='" + itemid + "' AND durability='" + durability + "'  AND cost='" + cost + "' AND enchants='" + enchants + "' AND customname='" + customname + "'");
             //update or insert item
-            if(var1.next()){
+            if (var1.next()) {
                 int count = var1.getInt("amount");
                 int newamount = count + stack;
                 query = "UPDATE wookieetrader SET amount='" + newamount + "', timedate='" + td + "' WHERE id='" + var1.getString("id") + "'";
+//                ps = sqLite.prepare("UPDATE wookieetrader SET amount='?', timedate='?' WHERE id='?'");
+//                ps.setInt(1, newamount);
+//                ps.setString(2, td);
+//                ps.setString(3, var1.getString("id"));
             } else {
-                query = "INSERT INTO wookieetrader VALUES('" + enchants + "', " + durability +", '" + td + "', '" + player + "', " + stack + ", " + cost + ", NULL, " + itemid + ")";
+                query = "INSERT INTO wookieetrader VALUES('" + customname + "', '" + enchants + "', " + durability + ", '" + td + "', '" + player + "', " + stack + ", " + cost + ", NULL, " + itemid + ")";
+//                ps.clearParameters();
+//                ps = sqLite.prepare("INSERT INTO wookieetrader VALUES('?', '?', ?, '?', '?', ?, ?, NULL, ?)");
+//                ps.setString(1, customname);
+//                ps.setString(2, enchants);
+//                ps.setInt(3, durability);
+//                ps.setString(4, td);
+//                ps.setString(5, player);
+//                ps.setInt(6, stack);
+//                ps.setInt(7, cost);
+//                ps.setInt(8, itemid);
             }
-            
+
             var1.close();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             plugin.getLogger().info(e.getMessage());
             sqLite.close();
         }
@@ -98,24 +114,20 @@ public class WookieeDatabase {
             }
             success.close();
             return false;
-        } catch (Exception e) {
+        } catch (SQLException e) {
             plugin.getLogger().info(e.getMessage());
             return false;
         }
     }
 
     public void sqlInsert(int itemid, int stack) {
-        try {
-            String name = "Grey_Paws";
-            String date = "Bollocks";
-            sqLite.query("INSERT INTO playerchest VALUES('" + date + "', NULL, " + itemid + ", '" + name + "', " + stack + ")");
-        } catch (Exception e) {
-            plugin.getLogger().info(e.getMessage());
-        }
     }
 
     public void sqlDelete(int id) {
         try {
+            String[] itemdb = new String[0];
+            itemdb[0] = String.valueOf(id);
+            sqlChestAdd(itemdb, -1, null, true);
             sqLite.query("DELETE FROM wookieetrader WHERE id=" + id);
         } catch (Exception e) {
             plugin.getLogger().info(e.getMessage());
@@ -137,15 +149,16 @@ public class WookieeDatabase {
                 cols.add(var1.getString("amount"));
                 cols.add(var1.getString("enchants"));
                 cols.add(var1.getString("durability"));
+                cols.add(var1.getString("customname"));
                 myarr.add(cols);
-                i++; //while count
+                i++;
+                //plugin.getLogger().info(var1.getString("id")+ ", " + var1.getString("itemid")+ ", " + var1.getString("player")+ ", " + var1.getString("amount"));
             }
-            //String[] var2 = {var1.getString("id"), var1.getString("itemid"), var1.getString("player"), var1.getString("count")};
 
             //plugin.getLogger().log(Level.INFO, "Index: {0}", myarr.get(1).get(1));
             var1.close();
             return myarr;
-        } catch (Exception e) {
+        } catch (SQLException e) {
             plugin.getLogger().info(e.getMessage());
         }
         ArrayList<List<String>> myarr = new ArrayList<List<String>>();
@@ -166,22 +179,25 @@ public class WookieeDatabase {
             }
             var1.close();
             return myarr;
-        } catch (Exception e) {
+        } catch (SQLException e) {
             plugin.getLogger().info(e.getMessage());
         }
         ArrayList<String> temp = new ArrayList();
         return temp;
     }
 
-    public String sqlChestRemove(int itemid, int amount, String player, String enchants, int durability) {
+    public String sqlChestRemove(int itemid, int amount, String player, String enchants, int durability, String customname) {
+        //plugin.getLogger().info(enchants);
         String returned = "";
         String query;
         ArrayList<List<Integer>> querylist = new ArrayList<List<Integer>>();
         int i = 0;
+        //plugin.getLogger().info("player='" + player + "' AND itemid='" + itemid + "' AND enchants='" + enchants + "' AND durability='" + durability + "' AND customname='" + customname + "'");
         try {
-            ResultSet var1 = sqLite.query("SELECT * FROM playerchest WHERE player='" + player + "' AND itemid='" + itemid + "' AND enchants='" + enchants + "' AND durability='" + durability + "'");
+            ResultSet var1 = sqLite.query("SELECT * FROM playerchest WHERE player='" + player + "' AND itemid='" + itemid + "' AND enchants='" + enchants + "' AND durability='" + durability + "' AND customname='" + customname + "'");
             returned = "true";
             while (var1.next()) {
+                //plugin.getLogger().info("Found");
                 ArrayList<Integer> vars = new ArrayList();
                 vars.add(var1.getInt("id"));
                 vars.add(var1.getInt("amount"));
@@ -214,53 +230,67 @@ public class WookieeDatabase {
                 }
                 i++;
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             plugin.getLogger().info(e.getMessage());
         }
         return returned;
     }
 
-    public boolean sqlChestAdd(String[] itemdb, int amount, String player) {
+    public boolean sqlChestAdd(String[] itemdb, int amount, String player, boolean cancel) {
         //String[] var2 = {var1.getString("id"), var1.getString("itemid"), var1.getString("amount"), var1.getString("cost"), var1.getString("durability"), var1.getString("enchants"), var1.getString("player")};
         String start = timeDate();
         String td = timeDate();
-        String query = "";
+        String query;
+        PreparedStatement ps;
         try {
             //check chest for item            
             ResultSet var1 = sqLite.query("SELECT * FROM playerchest WHERE player='" + player + "' AND itemid='" + itemdb[1] + "' AND durability='" + itemdb[4] + "' AND enchants='" + itemdb[5] + "'");
             //update or insert item
-            if(var1.next()){
+            if (var1.next()) {
                 int count = var1.getInt("amount");
-                int newamount = count + amount;;
+                int newamount = count + amount;
                 query = "UPDATE playerchest SET amount='" + newamount + "', timedate='" + td + "' WHERE id='" + var1.getString("id") + "'";
                 //plugin.getLogger().info("update item");
             } else {
-                //durability enchants timedate id itemid player amount
-                query = "INSERT INTO playerchest VALUES('" + itemdb[4] + "', '" + itemdb[5] +"', '" + td + "', NULL , '" + itemdb[1] + "', '" + player + "', '" + amount + "')";
+                //customname durability enchants timedate id itemid player amount
+                query = "INSERT INTO playerchest VALUES('" + itemdb[7] + "', '" + itemdb[4] + "', '" + itemdb[5] + "', '" + td + "', NULL , '" + itemdb[1] + "', '" + player + "', '" + amount + "')";
+//                ps = sqLite.prepare("INSERT INTO playerchest VALUES('?', ?, '?', '?', NULL , ?, '?', ?)");
+//                ps.setString(1, "false");
+//                ps.setInt(2, Integer.parseInt(itemdb[4]));
+//                ps.setString(3, itemdb[5]);
+//                ps.setString(4, td);
+//                ps.setInt(5, Integer.parseInt(itemdb[1]));
+//                ps.setString(6, player);
+//                ps.setInt(7, amount);
+//                ps.executeUpdate();
+                
                 //plugin.getLogger().info("insert item");
             }
-            
             var1.close();
-        } catch (Exception e) {
+            sqLite.query(query);
+        } catch (SQLException e) {
             plugin.getLogger().info(e.getMessage());
         }
-        sqLite.query(query);
+        
 
         int count = Integer.parseInt(itemdb[2]);
-        if(count > amount){
+        if (count > amount) {
             int newamount = count - amount;
+            //plugin.getLogger().info("update");
             query = "UPDATE wookieetrader SET amount='" + newamount + "' WHERE id='" + itemdb[0] + "'";
         } else {
+            //plugin.getLogger().info("delete");
             query = "DELETE FROM wookieetrader WHERE id='" + itemdb[0] + "'";
         }
         sqLite.query(query);
-        int cost = Integer.parseInt(itemdb[3]);
-        int fundsdue = cost * amount;
-        if (econ.hasAccount(itemdb[6])){
-            econ.depositPlayer(itemdb[6], fundsdue);
-        } else {
-            econ.createPlayerAccount(itemdb[6]);
-            econ.depositPlayer(itemdb[6], fundsdue);
+        if (!cancel) {
+            int cost = Integer.parseInt(itemdb[3]);
+            int fundsdue = cost * amount;
+            if (wecon.hasAccount(itemdb[6])) {
+                wecon.giveMoney(itemdb[6], fundsdue);
+            } else {
+                plugin.getLogger().warning("Seller was missing from Economy, failed to give money.");
+            }
         }
         //delete row from trader
         String finish = timeDate();
@@ -268,27 +298,60 @@ public class WookieeDatabase {
         return true;
     }
 
-    public ArrayList<List<String>> sqlTradeSearch(int itemid, String seller) {
+    public int sqlTradeCount(int itemid, String seller) {
+        int count = -1;
+        String query;
+        if (seller.equals("")) {
+            query = "SELECT COUNT(*) FROM wookieetrader WHERE itemid='" + itemid + "'";
+        } else {
+            query = "SELECT COUNT(*) FROM wookieetrader WHERE player='" + seller + "'";
+        }
+        if (itemid == -1) {
+            query = "SELECT COUNT(*) FROM wookieetrader";
+        }
+        try {
+            ResultSet rs = sqLite.query(query);
+            while (rs.next()) {
+                count = rs.getInt(1);
+            }
+            rs.close();
+            return count;
+        } catch (SQLException e) {
+            plugin.getLogger().info(e.getMessage());
+        }
+        return -1;
+    }
+
+    public ArrayList<List<String>> sqlTradeSearch(int itemid, String seller, int page) {
         ArrayList<List<String>> myarr = new ArrayList();
-        String query = "";
-        int offset = 0;
-        int limit = 10;
+        String query;
+        String countquery;
+        int offset;
+        int limit;
+        offset = (page - 1) * 5;
+        limit = 5;
         int i = 0;
-        if (seller == "") {
+        if (seller.equals("")) {
             query = "SELECT * FROM wookieetrader WHERE itemid='" + itemid + "' ORDER BY cost ASC LIMIT " + limit + " OFFSET " + offset;
+            countquery = "SELECT COUNT(*) FROM wookieetrader WHERE itemid='" + itemid + "'";
         } else {
             if (!seller.equalsIgnoreCase("-cancel")) {
                 query = "SELECT * FROM wookieetrader WHERE player='" + seller + "' ORDER BY itemid ASC, cost ASC LIMIT " + limit + " OFFSET " + offset;
+                countquery = "SELECT COUNT(*) FROM wookieetrader WHERE player='" + seller + "'";
             } else {
                 query = "SELECT * FROM wookieetrader WHERE id='" + itemid + "'";
             }
         }
         if (itemid == -1) {
             query = "SELECT * FROM wookieetrader ORDER BY timedate DESC LIMIT " + limit + " OFFSET " + offset;
+            countquery = "SELECT COUNT(*) FROM wookieetrader";
         }
+
+
         try {
             ResultSet rs = sqLite.query(query);
             while (rs.next()) {
+
                 ArrayList<String> results = new ArrayList();
                 results.add(rs.getString("id"));
                 results.add(rs.getString("itemid"));
@@ -297,12 +360,14 @@ public class WookieeDatabase {
                 results.add(rs.getString("player"));
                 results.add(rs.getString("durability"));
                 results.add(rs.getString("enchants"));
+                results.add(rs.getString("customname"));
                 myarr.add(results);
                 i++;
             }
             //plugin.getLogger().log(Level.INFO, "{0} trades found.", i);
             rs.close();
-        } catch (Exception e) {
+
+        } catch (SQLException e) {
             plugin.getLogger().info(e.getMessage());
         }
         return myarr;
