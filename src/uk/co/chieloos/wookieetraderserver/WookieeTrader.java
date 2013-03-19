@@ -24,7 +24,7 @@ public final class WookieeTrader extends JavaPlugin {
     public void onEnable() {
         if (getConfig().get("disabled").equals("true")) {
             getLogger().log(Level.SEVERE, "WookieeTraderServer has been disabled in the WookieTraderServer/config.yml");
-            getPluginLoader().disablePlugin(this);
+            getServer().getPluginManager().disablePlugin(this);
             return;
         }
         if (getServer().getPluginManager().getPlugin("WookieeItemNames") == null || getServer().getPluginManager().getPlugin("SQLibrary") == null) {

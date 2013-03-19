@@ -1,6 +1,6 @@
 name: WookieeTraderServer
 main: uk.co.chieloos.wookieetraderserver.WookieeTrader
-version: 0.1b
+version: 0.2b
 authors: [chieloos]
 website: http://chieloos.co.uk/wookieetrader
 depend: [Vault, SQLibrary, WookieeItemNames]
@@ -127,11 +127,8 @@ permissions:
     description: Gives access to listing all mailboxes
     default: op
     
-  WookieeTraderServer.sign.place:
-    description: Gives access to placing WookieeTraderServer signs
-    default: op
-  WookieeTraderServer.sign.remove:
-    description: Gives access to removing WookieeTraderServer signs
+  WookieeTraderServer.sign.modify:
+    description: Gives access to placing/removing WookieeTraderServer signs
     default: op
   WookieeTraderServer.sign.use:
     description: Gives access to using WookieeTraderServer signs

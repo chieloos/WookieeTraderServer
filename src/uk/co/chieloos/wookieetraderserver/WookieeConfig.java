@@ -52,7 +52,7 @@ public class WookieeConfig {
                 COMMANDS.put(cmdname, cmdhelp);
             } else {
                 error = true;
-                plugin.getLogger().info("Couldn't find:" + cmdlist.get(i));
+//                plugin.getLogger().info("Couldn't find:" + cmdlist.get(i));
             }
         }
 

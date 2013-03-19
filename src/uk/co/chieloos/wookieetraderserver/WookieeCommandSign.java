@@ -26,7 +26,7 @@ public class WookieeCommandSign implements Listener {
         Player player = event.getPlayer();
         if (event.getBlock().getType() == Material.SIGN_POST || event.getBlock().getType() == Material.WALL_SIGN) {
             Sign sign = (Sign) event.getBlock().getState();
-            if ("[WTrader]".equals(sign.getLine(0)) && !wperm.playerHasPermission(player, "WookieeTraderServer.sign.remove")) {
+            if ("[WTrader]".equals(sign.getLine(0)) && !wperm.playerHasPermission(player, "WookieeTraderServer.sign.modify")) {
                 if (!event.isCancelled()) {
                     event.setCancelled(true);
                     player.sendMessage(ChatColor.RED + "You don't have permission to break that sign.");
@@ -39,7 +39,7 @@ public class WookieeCommandSign implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onSignChange(SignChangeEvent event) {
         Player player = event.getPlayer();
-        if ("[WTrader]".equals(event.getLine(0)) && !wperm.playerHasPermission(player, "WookieeTraderServer.sign.place")) {
+        if ("[WTrader]".equals(event.getLine(0)) && !wperm.playerHasPermission(player, "WookieeTraderServer.sign.modify")) {
             if (event.isCancelled()) {
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You don't have permission to make that sign.");
