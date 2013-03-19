@@ -25,7 +25,6 @@ public class WookieeConfig {
         cmdlist.add("cancel");
         cmdlist.add("page");
         cmdlist.add("help");
-        cmdlist.add("test");
         this.plugin = plugin;
     }
 
@@ -33,7 +32,7 @@ public class WookieeConfig {
         String cmdhelp;
         String cmdname;
         COMMANDS = new HashMap();
-        
+
         File file = new File(plugin.getDataFolder() + File.separator + "config.yml");
         if (!file.exists()) {
             plugin.getConfig().options().copyDefaults(true);
@@ -47,15 +46,17 @@ public class WookieeConfig {
         boolean error = false;
 
         for (int i = 0; i < cmdlist.size(); i++) {
-           cmdhelp  = wcfg.getString("commands." + cmdlist.get(i) + ".help-message");
-           cmdname  = wcfg.getString("commands." + cmdlist.get(i) + ".command-name");
-            if (cmdname != null && cmdhelp != null){
+            cmdhelp = wcfg.getString("commands." + cmdlist.get(i) + ".help-message");
+            cmdname = wcfg.getString("commands." + cmdlist.get(i) + ".command-name");
+            if (cmdname != null && cmdhelp != null) {
                 COMMANDS.put(cmdname, cmdhelp);
             } else {
                 error = true;
+                plugin.getLogger().info("Couldn't find:" + cmdlist.get(i));
             }
         }
-        if (error){
+
+        if (error) {
             plugin.getLogger().warning("config.yml is missing information. Delete it then use '/wtadmin reload' to fix.");
         }
     }

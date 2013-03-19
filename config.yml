@@ -1,6 +1,8 @@
 # Default Config.yml! -chieloos
 ver: 0.1a
 disabled: false
+use-wg-region: true
+wg-region-id: wts
 commands:
   search:
     command-name: search

@@ -1,6 +1,6 @@
 name: WookieeTraderServer
 main: uk.co.chieloos.wookieetraderserver.WookieeTrader
-version: 0.1
+version: 0.1b
 authors: [chieloos]
 website: http://chieloos.co.uk/wookieetrader
 depend: [Vault, SQLibrary, WookieeItemNames]
@@ -26,6 +26,7 @@ permissions:
       WookieeTraderServer.wt.*: true
       WookieeTraderServer.wt-admin.*: true
       WookieeTraderServer.sign.*: true
+      WookieeTrderServer.region-override: true
       
   WookieeTraderServer.wt.*:
     description: Gives access to all non admin WookieeTraderServer commands.
@@ -73,8 +74,7 @@ permissions:
     description: Gives access to all sign permissions
     default: op
     children:
-      WookieeTraderServer.sign.place: true
-      WookieeTraderServer.sign.remove: true
+      WookieeTraderServer.sign.modify: true
       WookieeTraderServer.sign.use: true
       
   WookieeTraderServer.wt-admin.stop.*:
@@ -84,6 +84,10 @@ permissions:
       WookieeTraderServer.wt-admin.stop.once: true
       WookieeTraderServer.wt-admin.stop.permanent: true
       
+  WookieeTraderServer.region-override:
+    description: Allows /wt commands outside of the 'wts' WG region when configured to use WG regions.
+    default: op
+    
   WookieeTraderServer.wt.basic.buy:
     description: Gives access to buying trades
     default: op

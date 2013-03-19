@@ -27,20 +27,24 @@ public class WookieeCommandExecutor implements CommandExecutor {
     private WookieeEcon wecon;
     private WookieeConfig wcfg;
     private WookieePerm wperm;
+    private WookieeWorldGuard wwg;
+    private boolean uwg;
     public boolean enabled = false;
     HashMap<String, ArrayList> confirmmap = new HashMap<String, ArrayList>();
     HashMap<String, ArrayList> pagemap = new HashMap<String, ArrayList>();
     //ArrayList<String> cmdmap = new ArrayList<String>();
     public ArrayList<String> cmdlist = new ArrayList();
+    HashMap<String, String> permlist = new HashMap<String, String>();
     boolean cmdreturn;
     int switcher;
 
-    public WookieeCommandExecutor(WookieeTrader plugin, WookieeDatabase wdb, WookieeEcon wecon, WookieeConfig wcfg, WookieePerm wperm) {
+    public WookieeCommandExecutor(WookieeTrader plugin, WookieeDatabase wdb, WookieeEcon wecon, WookieeConfig wcfg, WookieePerm wperm, WookieeWorldGuard _wwg) {
         this.plugin = plugin;
         this.wdb = wdb;
         this.wecon = wecon;
         this.wcfg = wcfg;
         this.wperm = wperm;
+        wwg = _wwg;
         win = new ItemNames(this.plugin.getLogger());
 
         cmdlist.add("search");      //0
@@ -53,6 +57,42 @@ public class WookieeCommandExecutor implements CommandExecutor {
         cmdlist.add("version");     //7
         cmdlist.add("page");        //8
         cmdlist.add("help");        //9
+        cmdlist.add("test");
+        permlist.put("search", "WookieeTraderServer.wt.basic.search");
+        permlist.put("buy", "WookieeTraderServer.wt.basic.buy");
+        permlist.put("order", "WookieeTraderServer.wt.basic.order");
+        permlist.put("confirm", "WookieeTraderServer.wt.basic.confirm");
+        permlist.put("mailbox.other", "WookieeTraderServer.wt.mailbox.other");
+        permlist.put("mailbox.self", "WookieeTraderServer.wt.mailbox.self");
+        permlist.put("mailbox.list", "WookieeTraderServer.wt.mailbox.list");
+        permlist.put("sell", "WookieeTraderServer.wt.basic.sell");
+        permlist.put("cancel.self", "WookieeTraderServer.wt.cancel.self");
+        permlist.put("cancel.other", "WookieeTraderServer.wt.cancel.other");
+        permlist.put("version", "WookieeTraderServer.wt.basic.version");
+        permlist.put("page", "WookieeTraderServer.wt.basic.page");
+        permlist.put("help", "WookieeTraderServer.wt.basic.help");
+    }
+
+    private String canTrade(Player player, String cmd) {
+        //plugin.getLogger().info("Player " + player.getName() + " tried to use command:" + cmd);
+        String errormsg;
+        if (!wperm.playerHasPermission(player, permlist.get(cmd))) {
+            //plugin.getLogger().info("Denied because user didn't have correct permissions.");
+            errormsg = "You don't have permission to do that.";
+            return errormsg;
+        }
+        if (wwg.wgenabled && wcfg.wcfg.getString("use-wg-region").equals("true")) {
+            //plugin.getLogger().info("WorldGuard was found and WookieeTrader is configured to use WorldGuard Regions.");
+            if (!wwg.inWTRegion(player)) {
+                if (!wperm.playerHasPermission(player, "WookieeTraderServer.region-override")) {
+                    //plugin.getLogger().info("Denied because user wasn't in correct region.");
+                    errormsg = "You can't do that here.";
+                    return errormsg;
+                }
+            }
+        }
+        //plugin.getLogger().info("Player was allowed to use command.");
+        return null;
     }
 
     public String getItemName(String itemname) {
@@ -376,15 +416,17 @@ public class WookieeCommandExecutor implements CommandExecutor {
     }
 
     boolean cmdOrder(CommandSender sender, Command cmd, String label, ArrayList<String> arrargs, boolean confirmed) {
-        sender.sendMessage("Not yet implemented");
+        sender.sendMessage(ChatColor.RED + "Not yet implemented.");
 //        TODO: Order command
-        return false;
+        return true;
     }
 
     boolean cmdMailbox(CommandSender sender, Command cmd, String label, ArrayList<String> arrargs, boolean confirmed) {
+        String errormsg;
         Player player = (Player) sender;
         if (arrargs.size() == 2 && arrargs.get(1).equalsIgnoreCase("list")) {
-            if (wperm.playerHasPermission(player, "WookieeTraderServer.wt.mailbox.list")) {
+            errormsg = canTrade(player, "mailbox.list");
+            if (errormsg == null) {
                 ArrayList<String> playerlist = wdb.sqlChestList();
                 if (!playerlist.isEmpty()) {
                     int listsize = playerlist.size();
@@ -400,20 +442,22 @@ public class WookieeCommandExecutor implements CommandExecutor {
                 sender.sendMessage("No mailboxes found.");
                 return true;
             } else {
-                sender.sendMessage(ChatColor.RED + "Didn't have permission to do that.");
+                sender.sendMessage(ChatColor.RED + errormsg);
                 return true;
             }
         } else if (arrargs.size() > 0) {
             String playerchest;
             if (arrargs.size() == 1) {
-                if (!wperm.playerHasPermission(player, "WookieeTraderServer.wt.mailbox.self")) {
-                    sender.sendMessage(ChatColor.RED + "Didn't have permission to do that.");
+                errormsg = canTrade(player, "mailbox.self");
+                if (errormsg != null) {
+                    sender.sendMessage(ChatColor.RED + errormsg);
                     return true;
                 }
                 playerchest = sender.getName();
             } else {
-                if (!wperm.playerHasPermission(player, "WookieeTraderServer.wt.mailbox.other")) {
-                    sender.sendMessage(ChatColor.RED + "Didn't have permission to do that.");
+                errormsg = canTrade(player, "mailbox.other");
+                if (errormsg != null) {
+                    sender.sendMessage(ChatColor.RED + errormsg);
                     return true;
                 }
                 playerchest = arrargs.get(1);
@@ -563,9 +607,11 @@ public class WookieeCommandExecutor implements CommandExecutor {
     }
 
     boolean cmdCancel(CommandSender sender, Command cmd, String label, ArrayList<String> arrargs, boolean confirmed) {
+        String errormsg;
         Player player = (Player) sender;
-        if (!wperm.playerHasPermission(player, "WookieeTraderServer.wt.cancel.self")) {
-            sender.sendMessage(ChatColor.RED + "Didn't have permission to do that.");
+        errormsg = canTrade(player, "cancel.self");
+        if (errormsg != null) {
+            sender.sendMessage(ChatColor.RED + errormsg);
             return true;
         }
         if (arrargs != null && arrargs.size() > 1) {
@@ -592,14 +638,15 @@ public class WookieeCommandExecutor implements CommandExecutor {
                     ArrayList<List<String>> searcharr;
                     searcharr = wdb.sqlTradeSearch(Integer.parseInt(arrargs.get(1)), "-cancel", page);
                     if (!searcharr.isEmpty()) {
-                        if (searcharr.get(0).get(4).equals(sender.getName()) || wperm.playerHasPermission(player, "WookieeTraderServer.wt.cancel.other")) {
+                        errormsg = canTrade(player, "cancel.other");
+                        if (searcharr.get(0).get(4).equals(sender.getName()) || errormsg == null) {
                             confMap(sender, arrargs);
                             String itemname = Material.getMaterial(Integer.parseInt(searcharr.get(0).get(1))).toString();
                             sender.sendMessage("Cancel trade? Item: " + itemname + ", amount: " + searcharr.get(0).get(2) + ", cost: " + searcharr.get(0).get(3));
                             sender.sendMessage("To confirm, type: /wt confirm");
                             return true;
                         } else {
-                            sender.sendMessage("You don't have permission to cancel other peoples trades.");
+                            sender.sendMessage(ChatColor.RED + errormsg);
                             return true;
                         }
                     } else {
@@ -725,15 +772,16 @@ public class WookieeCommandExecutor implements CommandExecutor {
             int i = 0;
             boolean confirm;
             Player player = (Player) sender;
-            boolean returned;
             ArrayList<String> arrargs = new ArrayList<String>();
+            String errormsg;
             int page = 1;
             while (n > i) {
                 arrargs.add(args[i]);
                 i++;
             }
             if (arrargs.get(0).equalsIgnoreCase("confirm") && confirmmap.size() > 0 && confirmmap.containsKey(sender.getName())) {
-                if (wperm.playerHasPermission(player, "WookieeTraderServer.wt.basic.confirm")) {
+                errormsg = canTrade(player, "confirm");
+                if (errormsg == null) {
                     ArrayList<String> cmdarr;
                     cmdarr = confirmmap.get(sender.getName());
                     n = cmdarr.size();
@@ -745,14 +793,15 @@ public class WookieeCommandExecutor implements CommandExecutor {
                     }
                     confirm = true;
                 } else {
-                    sender.sendMessage(ChatColor.RED + "Didn't have permission to do that.");
+                    sender.sendMessage(ChatColor.RED + errormsg);
                     return true;
                 }
             } else {
                 confirm = false;
             }
             if (arrargs.get(0).equalsIgnoreCase("page") && arrargs.size() > 1 && pagemap.size() > 0 && pagemap.containsKey(sender.getName())) {
-                if (wperm.playerHasPermission(player, "WookieeTraderServer.wt.basic.page")) {
+                errormsg = canTrade(player, "page");
+                if (errormsg == null) {
                     ArrayList<String> cmdarr;
                     cmdarr = pagemap.get(sender.getName());
                     n = cmdarr.size();
@@ -767,65 +816,77 @@ public class WookieeCommandExecutor implements CommandExecutor {
                         }
                     }
                 } else {
-                    sender.sendMessage(ChatColor.RED + "Didn't have permission to do that.");
+                    sender.sendMessage(ChatColor.RED + errormsg);
                     return true;
                 }
             }
             switcher = cmdNum(arrargs.get(0));
             switch (switcher) {
                 case 0:     //search
-                    if (wperm.playerHasPermission(player, "WookieeTraderServer.wt.basic.search")) {
+                    errormsg = canTrade(player, "search");
+                    if (errormsg == null) {
                         return cmdSearch(sender, cmd, label, arrargs, confirm, page);
                     } else {
-                        sender.sendMessage(ChatColor.RED + "Didn't have permission to do that.");
+                        sender.sendMessage(ChatColor.RED + errormsg);
                         return true;
                     }
                 case 1:     //buy
-                    if (wperm.playerHasPermission(player, "WookieeTraderServer.wt.basic.buy")) {
+                    errormsg = canTrade(player, "buy");
+                    if (errormsg == null) {
                         return cmdBuy(sender, cmd, label, arrargs, confirm);
                     } else {
-                        sender.sendMessage(ChatColor.RED + "Didn't have permission to do that.");
+                        sender.sendMessage(ChatColor.RED + errormsg);
                         return true;
                     }
                 case 2:     //order
-                    if (wperm.playerHasPermission(player, "WookieeTraderServer.wt.basic.order")) {
+                    errormsg = canTrade(player, "order");
+                    if (errormsg == null) {
                         return cmdOrder(sender, cmd, label, arrargs, confirm);
                     } else {
-                        sender.sendMessage(ChatColor.RED + "Didn't have permission to do that.");
+                        sender.sendMessage(ChatColor.RED + errormsg);
                         return true;
                     }
                 case 3:     //confirm
-                    sender.sendMessage("Nothing to confirm");
-                    return true;
+                    errormsg = canTrade(player, "confirm");
+                    if (errormsg == null) {
+                        sender.sendMessage("Nothing to confirm");
+                        return true;
+                    } else {
+                        sender.sendMessage(ChatColor.RED + errormsg);
+                        return true;
+                    }
                 case 4:     //mailbox
                     return cmdMailbox(sender, cmd, label, arrargs, confirm);
                 case 5:     //sell
-                    if (wperm.playerHasPermission(player, "WookieeTraderServer.wt.basic.sell")) {
+                    errormsg = canTrade(player, "sell");
+                    if (errormsg == null) {
                         return cmdSell(sender, cmd, label, arrargs, confirm);
+
                     } else {
-                        sender.sendMessage(ChatColor.RED + "Didn't have permission to do that.");
+                        sender.sendMessage(ChatColor.RED + errormsg);
                         return true;
                     }
                 case 6:     //cancel
                     return cmdCancel(sender, cmd, label, arrargs, confirm);
                 case 7:     //version
-                    if (wperm.playerHasPermission(player, "WookieeTraderServer.wt.basic.version")) {
+                    errormsg = canTrade(player, "version");
+                    if (errormsg == null) {
                         return cmdVersion(sender, cmd, label, arrargs, confirm);
                     } else {
-                        sender.sendMessage(ChatColor.RED + "Didn't have permission to do that.");
+                        sender.sendMessage(ChatColor.RED + errormsg);
                         return true;
                     }
-
                 case 8:     //page
-                    sender.sendMessage("No pages to change.");
-                    return true;
-                case 9:     //help
-                    if (wperm.playerHasPermission(player, "WookieeTraderServer.wt.basic.help")) {
-                        return cmdHelp(sender, cmd, label, arrargs, confirm);
+                    errormsg = canTrade(player, "page");
+                    if (errormsg == null) {
+                        sender.sendMessage("No pages to change.");
+                        return true;
                     } else {
-                        sender.sendMessage(ChatColor.RED + "Didn't have permission to do that.");
+                        sender.sendMessage(ChatColor.RED + errormsg);
                         return true;
                     }
+                case 9:     //help
+                    return cmdHelp(sender, cmd, label, arrargs, confirm);
             }
         }
         return false;
