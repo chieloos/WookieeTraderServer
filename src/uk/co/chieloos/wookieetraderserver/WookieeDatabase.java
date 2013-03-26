@@ -8,13 +8,6 @@ import java.util.Random;
 import java.util.logging.Level;
 import uk.co.chieloos.wookieetraderserver.economy.WookieeEcon;
 
-
-/*
- * wookieetrader: customname enchants durability timedate player amount cost id
- * itemid
- *
- * playerchest: customname durability enchants timedate id itemid player amount
- */
 public class WookieeDatabase {
 
     private WookieeTrader plugin;
@@ -60,7 +53,7 @@ public class WookieeDatabase {
         return accessdb.addToTrades(customname, enchants, durability, player, stack, itemid, cost);
     }
 
-    protected void sqlPopulate() {
+    protected void testPopulate() {
         List<WDBEntry> dbList = new ArrayList<WDBEntry>();
         WDBEntry wde;
         Random rand = new Random();
@@ -136,14 +129,14 @@ public class WookieeDatabase {
     }
     protected List<WDBEntry> searchTrades(int itemid, String player, int page) {
         if (itemid != -1) {
-            plugin.getLogger().info("Searching by itemid");
+            //plugin.getLogger().info("Searching by itemid");
             return accessdb.searchTrades(itemid, page);
         }
         if (!player.equals("")) {
-            plugin.getLogger().info("Searching by player");
+            //plugin.getLogger().info("Searching by player");
             return accessdb.searchTrades(player, page);
         }
-        plugin.getLogger().info("Searching by all");
+        //plugin.getLogger().info("Searching by all");
         return accessdb.getAllTrades(page);
     }
 

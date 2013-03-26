@@ -172,7 +172,7 @@ public class AccessDataBases {
         boolean found = false;
         boolean success = true;
         if (mailboxdbByPlayer.containsKey(wde.getPlayer())) {
-            plugin.getLogger().info("contains player");
+            //plugin.getLogger().info("contains player");
             List mailboxlist = mailboxdbByPlayer.get(wde.getPlayer());
             int size = mailboxlist.size();
             while (size > i) {
@@ -210,7 +210,7 @@ public class AccessDataBases {
         boolean success = true;
         while (size > i) {
             if (wde.equals(tradeslist.get(i))) {
-                plugin.getLogger().info("found in player: " + i);
+                //plugin.getLogger().info("found in player: " + i);
                 found = true;
                 break;
             }
@@ -232,7 +232,7 @@ public class AccessDataBases {
         found = false;
         while (size > i) {
             if (wde.equals(tradeslist.get(i))) {
-                plugin.getLogger().info("found in itemid: " + i);
+                //plugin.getLogger().info("found in itemid: " + i);
                 found = true;
                 break;
             }
@@ -254,7 +254,7 @@ public class AccessDataBases {
         found = false;
         while (size > i) {
             if (wde.equals(tradeslist.get(i))) {
-                plugin.getLogger().info("found in time:" + i);
+                //plugin.getLogger().info("found in time:" + i);
                 found = true;
                 break;
             }
@@ -287,7 +287,7 @@ public class AccessDataBases {
         int newamount;
         int id = -1;
         if (mailboxdbByPlayer.containsKey(player)) {
-            plugin.getLogger().info("contains player");
+            //plugin.getLogger().info("contains player");
             List<WDBEntry> list = mailboxdbByPlayer.get(player);
             int listsize = list.size();
             while (listsize > i) {
@@ -303,7 +303,7 @@ public class AccessDataBases {
             if (found) {
                 newentry = new WDBEntry(list.get(i));
                 newentry.updateTime();
-                plugin.getLogger().log(Level.INFO, "amount: {0}", amount);
+                //plugin.getLogger().log(Level.INFO, "amount: {0}", amount);
                 newamount = list.get(i).getAmount() + amount;
                 if (newamount > 0) {
                     newentry.setAmount(newamount);
@@ -329,7 +329,7 @@ public class AccessDataBases {
         }
         if (!error && !delete) {
             if (id != -1 && found) {
-                plugin.getLogger().info("try to remove from mailboxdb");
+                //plugin.getLogger().info("try to remove from mailboxdb");
                 removeFromMailbox(id);
             }
             updateMailbox(newentry, false);
@@ -360,7 +360,7 @@ public class AccessDataBases {
             }
             if (found) {
                 newentry = new WDBEntry(list.get(i));
-                plugin.getLogger().info("amount: " + amount);
+                //plugin.getLogger().info("amount: " + amount);
                 newamount = list.get(i).getAmount() + amount;
                 newentry.updateTime();
                 if (newamount > 0) {
@@ -437,7 +437,7 @@ public class AccessDataBases {
             while (listSize > i) {
                 if (wde.getID() == dbList.get(i).getID()) {
                     dbList.add(i, wde);
-                    plugin.getLogger().info("found in time");
+                    //plugin.getLogger().info("found in time");
                     update = true;
                     break;
                 }
@@ -460,7 +460,7 @@ public class AccessDataBases {
             while (listSize > i) {
                 if (wde.getID() == dbList.get(i).getID()) {
                     dbList.add(i, wde);
-                    plugin.getLogger().info("found in itemid");
+                    //plugin.getLogger().info("found in itemid");
                     update = true;
                     break;
                 }
@@ -482,7 +482,7 @@ public class AccessDataBases {
             while (listSize > i) {
                 if (wde.getID() == dbList.get(i).getID()) {
                     dbList.add(i, wde);
-                    plugin.getLogger().info("found in player");
+                    //plugin.getLogger().info("found in player");
                     update = true;
                     break;
                 }
@@ -570,7 +570,7 @@ public class AccessDataBases {
         }
         long fin = System.currentTimeMillis();
         long total = fin - start;
-        plugin.getLogger().log(Level.INFO, "Mailbox save time: {0}", new Object[]{total});
+        //plugin.getLogger().log(Level.INFO, "Mailbox save time: {0}", new Object[]{total});
     }
 
     void putTradesDatabase() {
@@ -585,7 +585,7 @@ public class AccessDataBases {
         }
         long fin = System.currentTimeMillis();
         long total = fin - start;
-        plugin.getLogger().log(Level.INFO, "Trades save time: {0}", new Object[]{total});
+        //plugin.getLogger().log(Level.INFO, "Trades save time: {0}", new Object[]{total});
     }
 
     void debug() {

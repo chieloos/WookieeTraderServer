@@ -91,16 +91,6 @@ public class WookieeCommandExecutor implements CommandExecutor {
         return null;
     }
 
-//    public String getEnchantName(String enchant) {
-//        String name;
-//        name = plugin.getConfig().getString("enchants." + enchant + ".name");
-//        if (name == null) {
-//            return "";
-//        } else {
-////            plugin.getLogger().info("Found");
-//            return name;
-//        }
-//    }
     private String formatEnchants(String enchants) {
         String formatted = "";
         if (!enchants.equals("false")) {
@@ -121,14 +111,11 @@ public class WookieeCommandExecutor implements CommandExecutor {
                     } else {
                         formatted += eachench[0] + " " + eachench[1] + ", ";
                     }
-
                 }
                 i++;
-
             }
             formatted += "--";
             formatted = formatted.replace(", --", "");
-
         }
         return formatted;
     }
@@ -235,7 +222,6 @@ public class WookieeCommandExecutor implements CommandExecutor {
             enchantments.put(Enchantment.getByName(eachench[0]), Integer.parseInt(eachench[1]));
             l++;
         }
-
         return enchantments;
     }
 
@@ -284,7 +270,7 @@ public class WookieeCommandExecutor implements CommandExecutor {
                 }
             }
             if (searcharr != null && !searcharr.isEmpty()) {
-                plugin.getLogger().info("searcharr isn't empty");
+                //plugin.getLogger().info("searcharr isn't empty");
                 int searchsize = searcharr.size();
                 int i = 0;
                 String itemname;
@@ -876,29 +862,29 @@ public class WookieeCommandExecutor implements CommandExecutor {
                 case 9:     //help
                     return cmdHelp(sender, cmd, label, arrargs, confirm);
                 case 10:
-                    if (arrargs.size() == 2) {
-                        if (arrargs.get(1).equals("debug")){
-                            wdb.getDebugInfo();
-                        }
-                        if (arrargs.get(1).equals("populate")) {
-                            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    wdb.sqlPopulate();
-                                }
-                            });
-                        }
-                        if (arrargs.get(1).equals("save")) {
-                            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    wdb.loadDatabases();
-                                }
-                            });
-                        }
-                    }
+//                    if (arrargs.size() == 2) {
+//                        if (arrargs.get(1).equals("debug")){
+//                            wdb.getDebugInfo();
+//                        }
+//                        if (arrargs.get(1).equals("populate")) {
+//                            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable() {
+//
+//                                @Override
+//                                public void run() {
+//                                    wdb.sqlPopulate();
+//                                }
+//                            });
+//                        }
+//                        if (arrargs.get(1).equals("save")) {
+//                            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable() {
+//
+//                                @Override
+//                                public void run() {
+//                                    wdb.loadDatabases();
+//                                }
+//                            });
+//                        }
+//                    }
             }
         }
         return false;

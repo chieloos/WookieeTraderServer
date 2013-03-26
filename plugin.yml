@@ -1,6 +1,6 @@
 name: WookieeTraderServer
 main: uk.co.chieloos.wookieetraderserver.WookieeTrader
-version: 0.3a
+version: 0.2b
 authors: [chieloos]
 website: http://chieloos.co.uk/wookieetrader
 depend: [Vault, SQLibrary, WookieeItemNames]
