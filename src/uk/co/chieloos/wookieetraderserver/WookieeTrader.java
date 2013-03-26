@@ -14,9 +14,11 @@ public final class WookieeTrader extends JavaPlugin {
     public final WookieeConfig wcfg = new WookieeConfig(this);
     public final WookieeEcon wecon = new WookieeEcon(this);
     public final WookieePerm wperm = new WookieePerm(this);
-    public final WookieeDatabase wdb = new WookieeDatabase(this, wecon);
+    public final AccessDataBases accessdb = new AccessDataBases(plugin, wcfg);
+    public final WookieeDatabase wdb = new WookieeDatabase(this, wecon, accessdb);
     public final WookieeWorldGuard wwg = new WookieeWorldGuard(this, wcfg);
-    protected static final String SETTINGS_VERSION = "0.1a";
+    
+    protected static final String CONFIG_VERSION = "0.2";
     protected PluginManager manager;
     protected PluginDescriptionFile pdf;
 
@@ -48,11 +50,36 @@ public final class WookieeTrader extends JavaPlugin {
         manager.registerEvents(new WookieeChestListener(this, wdb, wperm), this);
         getCommand("wt").setExecutor(new WookieeCommandExecutor(this, wdb, wecon, wcfg, wperm, wwg));
         getCommand("wt-admin").setExecutor(new WookieeAdminCE(this, wdb, wecon, wcfg, wperm));
-        wdb.sqlConnection();
+        loadDatabases();
+        accessdb.getCounters();
+        startDatabaseSaves();
         getLogger().log(Level.INFO, "Enabled {0} v{1}", new Object[]{pdf.getName(), pdf.getVersion()});
     }
 
     @Override
     public void onDisable() {
+        //wdb.saveDatabases();
+        //saveConfig();
+    }
+
+    void startDatabaseSaves() {
+        getServer().getScheduler().runTaskTimerAsynchronously(this, new Runnable() {
+
+            @Override
+            public void run() {
+                wdb.saveDatabases();
+                wcfg.saveConfig();
+            }
+        }, 600, 600);
+    }
+
+    void loadDatabases() {
+        getServer().getScheduler().runTaskAsynchronously(this, new Runnable() {
+
+            @Override
+            public void run() {
+                wdb.loadDatabases();
+            }
+        });
     }
 }

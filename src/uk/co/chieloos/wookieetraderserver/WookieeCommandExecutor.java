@@ -2,8 +2,6 @@ package uk.co.chieloos.wookieetraderserver;
 
 import java.util.*;
 import java.util.logging.Level;
-import net.milkbowl.vault.item.ItemInfo;
-import net.milkbowl.vault.item.Items;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -28,11 +26,9 @@ public class WookieeCommandExecutor implements CommandExecutor {
     private WookieeConfig wcfg;
     private WookieePerm wperm;
     private WookieeWorldGuard wwg;
-    private boolean uwg;
     public boolean enabled = false;
-    HashMap<String, ArrayList> confirmmap = new HashMap<String, ArrayList>();
-    HashMap<String, ArrayList> pagemap = new HashMap<String, ArrayList>();
-    //ArrayList<String> cmdmap = new ArrayList<String>();
+    Map<String, ArrayList> confirmmap = Collections.synchronizedMap(new HashMap<String, ArrayList>());
+    Map<String, ArrayList> pagemap = Collections.synchronizedMap(new HashMap<String, ArrayList>());
     public ArrayList<String> cmdlist = new ArrayList();
     HashMap<String, String> permlist = new HashMap<String, String>();
     boolean cmdreturn;
@@ -95,75 +91,37 @@ public class WookieeCommandExecutor implements CommandExecutor {
         return null;
     }
 
-    public String getItemName(String itemname) {
-        if (isInteger(itemname)) {
-            String name = getItemName(Integer.parseInt(itemname));
-            if (name != null) {
-                return name;
-            }
-        } else {
-            Material itemmat = Material.getMaterial(itemname);
-            if (itemmat != null) {
-                String name = getItemName(itemmat.getId());
-                if (name != null) {
-//                    plugin.getLogger().info("Found");
-                    return name;
-                }
-            }
-        }
-        return "";
-    }
-
-    public String getItemName(int itemid) {
-        String name = null;
-        ItemInfo iteminfo;
-        iteminfo = Items.itemById(itemid);
-        if (iteminfo != null) {
-            name = iteminfo.getName();
-        }
-        if (name == null) {
-            Material itemmat = Material.getMaterial(itemid);
-            if (itemmat == null) {
-                return "";
-            } else {
-//                plugin.getLogger().info("Found");
-                return itemmat.name();
-            }
-        } else {
-//            plugin.getLogger().info("Found");
-            return name;
-        }
-    }
-
-    public String getEnchantName(String enchant) {
-        String name;
-        name = plugin.getConfig().getString("enchants." + enchant + ".name");
-        if (name == null) {
-            return "";
-        } else {
-//            plugin.getLogger().info("Found");
-            return name;
-        }
-    }
-
+//    public String getEnchantName(String enchant) {
+//        String name;
+//        name = plugin.getConfig().getString("enchants." + enchant + ".name");
+//        if (name == null) {
+//            return "";
+//        } else {
+////            plugin.getLogger().info("Found");
+//            return name;
+//        }
+//    }
     private String formatEnchants(String enchants) {
         String formatted = "";
         if (!enchants.equals("false")) {
             String[] encharr = enchants.split(" ");
             String[] eachench;
-            String enchantname = "";
+            String enchantname;
             int count = encharr.length;
             int i = 0;
             while (count > i) {
                 if (!encharr[i].equals("false")) {
                     eachench = encharr[i].split("-");
-                    if (getEnchantName(eachench[0]) != null) {
-                        enchantname = getEnchantName(eachench[0]);
+                    if (win.getEnchantName(eachench[0]) != null) {
+                        enchantname = win.getEnchantName(eachench[0]);
                         if (enchantname.equals("")) {
                             enchantname = eachench[0];
                         }
+                        formatted += enchantname + " " + eachench[1] + ", ";
+                    } else {
+                        formatted += eachench[0] + " " + eachench[1] + ", ";
                     }
-                    formatted += enchantname + " " + eachench[1] + ", ";
+
                 }
                 i++;
 
@@ -175,9 +133,9 @@ public class WookieeCommandExecutor implements CommandExecutor {
         return formatted;
     }
 
-    private int getPercent(String currentdurability, String itemid) {
-        Material item = Material.getMaterial(Integer.parseInt(itemid));
-        short precurrent = Short.parseShort(currentdurability);
+    private int getPercent(int currentdurability, int itemid) {
+        Material item = Material.getMaterial(itemid);
+        short precurrent = (short) currentdurability;
         short max = item.getMaxDurability();
         int current = max - precurrent;
         if (max != 0) {
@@ -286,12 +244,12 @@ public class WookieeCommandExecutor implements CommandExecutor {
             sender.sendMessage("This command can only be run by a player.");
             return true;
         }
-        ArrayList<List<String>> searcharr = new ArrayList();
+        List<WDBEntry> searcharr = new ArrayList();
         int count = 0;
         boolean all = false;
         if (arrargs.size() == 2 && arrargs.get(1).equalsIgnoreCase("all") || arrargs.size() == 1) {
-            searcharr = wdb.sqlTradeSearch(-1, "", page);
-            count = wdb.sqlTradeCount(-1, "");
+            searcharr = wdb.searchTrades(-1, "", page);
+            count = wdb.tradeCount(-1, "");
             all = true;
         }
         if (arrargs.size() == 3 || all) {
@@ -299,21 +257,21 @@ public class WookieeCommandExecutor implements CommandExecutor {
             }
             if (arrargs.size() > 1 && arrargs.get(1).equalsIgnoreCase("player")) {
                 //plugin.getLogger().info("search player");
-                searcharr = wdb.sqlTradeSearch(0, arrargs.get(2), page);
-                count = wdb.sqlTradeCount(0, arrargs.get(2));
+                searcharr = wdb.searchTrades(-1, arrargs.get(2), page);
+                count = wdb.tradeCount(-1, arrargs.get(2));
             } else if (arrargs.size() > 1 && arrargs.get(1).equalsIgnoreCase("item")) {
                 //plugin.getLogger().info("search item");
                 String item = arrargs.get(2);
 
                 if (isInteger(item)) {
-                    searcharr = wdb.sqlTradeSearch(Integer.parseInt(arrargs.get(2)), "", page);
-                    count = wdb.sqlTradeCount(Integer.parseInt(arrargs.get(2)), "");
+                    searcharr = wdb.searchTrades(Integer.parseInt(arrargs.get(2)), "", page);
+                    count = wdb.tradeCount(Integer.parseInt(arrargs.get(2)), "");
                 } else {
                     String itemname = arrargs.get(2).toUpperCase();
                     if (Material.getMaterial(itemname) instanceof Material) {
                         int itemid = Material.getMaterial(itemname).getId();
-                        searcharr = wdb.sqlTradeSearch(itemid, "", page);
-                        count = wdb.sqlTradeCount(itemid, "");
+                        searcharr = wdb.searchTrades(itemid, "", page);
+                        count = wdb.tradeCount(itemid, "");
                     } else {
                         sender.sendMessage("Item name not recognised.");
                         return true;
@@ -325,8 +283,8 @@ public class WookieeCommandExecutor implements CommandExecutor {
                     return true;
                 }
             }
-            if (!searcharr.isEmpty()) {
-                //plugin.getLogger().info("searcharr isn't empty");
+            if (searcharr != null && !searcharr.isEmpty()) {
+                plugin.getLogger().info("searcharr isn't empty");
                 int searchsize = searcharr.size();
                 int i = 0;
                 String itemname;
@@ -335,20 +293,20 @@ public class WookieeCommandExecutor implements CommandExecutor {
                 String enchants;
 
                 while (searchsize > i) {
-                    enchants = formatEnchants(searcharr.get(i).get(6));
-                    durability = getPercent(searcharr.get(i).get(5), searcharr.get(i).get(1));
+                    enchants = formatEnchants(searcharr.get(i).getEnchants());
+                    durability = getPercent(searcharr.get(i).getDurability(), searcharr.get(i).getItemID());
                     if (durability != -1) {
-                        itemname = win.getItemName(Integer.parseInt(searcharr.get(i).get(1)), 0);
+                        itemname = win.getItemName(searcharr.get(i).getItemID(), 0);
                         if (durability != 100) {
                             durabilitypercent = "Dur: " + ChatColor.RED + durability + ChatColor.RESET + "%" + ", ";
                         } else {
                             durabilitypercent = "Dur: " + ChatColor.GREEN + durability + ChatColor.RESET + "%" + ", ";
                         }
                     } else {
-                        itemname = win.getItemName(Integer.parseInt(searcharr.get(i).get(1)), Integer.parseInt(searcharr.get(i).get(5)));
+                        itemname = win.getItemName(searcharr.get(i).getItemID(), searcharr.get(i).getDurability());
                         durabilitypercent = "";
                     }
-                    sender.sendMessage("id " + ChatColor.YELLOW + searcharr.get(i).get(0) + ChatColor.RESET + ": " + searcharr.get(i).get(2) + " " + ChatColor.DARK_GREEN + itemname + ChatColor.RESET + " for " + ChatColor.BLUE + searcharr.get(i).get(3) + ChatColor.RESET + " ea, " + durabilitypercent + "Seller: " + ChatColor.GOLD + searcharr.get(i).get(4));
+                    sender.sendMessage("id " + ChatColor.YELLOW + searcharr.get(i).getID() + ChatColor.RESET + ": " + searcharr.get(i).getAmount() + " " + ChatColor.DARK_GREEN + itemname + ChatColor.RESET + " for " + ChatColor.BLUE + searcharr.get(i).getCost() + ChatColor.RESET + " ea, " + durabilitypercent + "Seller: " + ChatColor.GOLD + searcharr.get(i).getPlayer());
                     if (!enchants.equals("")) {
                         sender.sendMessage("Enchants: " + enchants);
                     }
@@ -387,9 +345,9 @@ public class WookieeCommandExecutor implements CommandExecutor {
                 return false;
             }
             int id = Integer.parseInt(arrargs.get(1));
-            String[] itemdb = wdb.sqlBuy(id);
-            if (!itemdb[0].equals("false")) {
-                int count = Integer.parseInt(itemdb[2]);
+            WDBEntry wde = wdb.getTrade(id);
+            if (wde != null) {
+                int count = wde.getAmount();
                 int amount = Integer.parseInt(arrargs.get(2));
                 if (amount < 1) {
                     return false;
@@ -398,16 +356,18 @@ public class WookieeCommandExecutor implements CommandExecutor {
                     sender.sendMessage("There aren't that many to buy.");
                     return true;
                 }
-                int cost = Integer.parseInt(itemdb[3]) * amount;
-                int amountdue = Math.abs(cost) * -1;
+                double cost = wde.getCost() * amount;
+                double amountdue = Math.abs(cost) * -1;
                 if (wecon.giveMoney(sender.getName(), amountdue)) {
-                    sender.sendMessage("Cost you: " + cost + " (" + itemdb[3] + "x" + amount + ")");
-                    wdb.sqlChestAdd(itemdb, Integer.parseInt(arrargs.get(2)), sender.getName(), false);
+                    sender.sendMessage("Cost you: " + cost + " (" + wde.getCost() + "x" + amount + ")");
+                    wdb.addToMailbox(wde, Integer.parseInt(arrargs.get(2)), sender.getName());
+                    wecon.giveMoney(wde.getPlayer(), cost);
                     return true;
                 } else {
                     sender.sendMessage("You don't have enough money.");
                     return true;
                 }
+                
             } else {
                 sender.sendMessage("Item not found.");
                 return true;
@@ -427,7 +387,7 @@ public class WookieeCommandExecutor implements CommandExecutor {
         if (arrargs.size() == 2 && arrargs.get(1).equalsIgnoreCase("list")) {
             errormsg = canTrade(player, "mailbox.list");
             if (errormsg == null) {
-                ArrayList<String> playerlist = wdb.sqlChestList();
+                ArrayList<String> playerlist = wdb.getMailboxList();
                 if (!playerlist.isEmpty()) {
                     int listsize = playerlist.size();
                     int i = 0;
@@ -462,16 +422,16 @@ public class WookieeCommandExecutor implements CommandExecutor {
                 }
                 playerchest = arrargs.get(1);
             }
-            ArrayList<List<String>> chestcontents = wdb.sqlChest(playerchest);
+            ArrayList<WDBEntry> mailboxcontents = wdb.searchMailbox(playerchest);
             Inventory chest;
-            if (!chestcontents.isEmpty()) {
-                chest = Bukkit.createInventory(null, 9, playerchest + " - Mailbox");
+            if (mailboxcontents != null) {
+                chest = Bukkit.createInventory(null, 27, playerchest + " - Mailbox");
                 int i = 0;
                 Map<Enchantment, Integer> enchantments = new HashMap<Enchantment, Integer>();
-                while (chestcontents.size() > i) {
-                    ItemStack item = new ItemStack(Integer.parseInt(chestcontents.get(i).get(1)), Integer.parseInt(chestcontents.get(i).get(3)));
-                    if (!chestcontents.get(i).get(4).equals("false")) {
-                        String enchstring = chestcontents.get(i).get(4);
+                while (mailboxcontents.size() > i) {
+                    ItemStack item = new ItemStack(mailboxcontents.get(i).getItemID(), mailboxcontents.get(i).getAmount());
+                    if (!mailboxcontents.get(i).getEnchants().equals("false")) {
+                        String enchstring = mailboxcontents.get(i).getEnchants();
                         String[] encharr = enchstring.split(" ");
                         String[] eachench;
                         enchantments.clear();
@@ -485,7 +445,7 @@ public class WookieeCommandExecutor implements CommandExecutor {
                         }
                         item.addEnchantments(enchantments);
                     }
-                    item.setDurability(Short.parseShort(chestcontents.get(i).get(5)));
+                    item.setDurability((short) mailboxcontents.get(i).getDurability());
                     chest.addItem(item);
                     i++;
                 }
@@ -577,9 +537,8 @@ public class WookieeCommandExecutor implements CommandExecutor {
             }
             Map<Integer, ItemStack> removedleft = invent.removeItem(toberemoved);
             if (removedleft.isEmpty()) {
-                int ppu = Integer.parseInt(arrargs.get(2));
-
-                boolean wdbsuccess = wdb.sqlSell(player.getName(), itemid, ppu, itemcount, enchants, durability, customname);
+                double ppu = Double.parseDouble(arrargs.get(2));
+                boolean wdbsuccess = wdb.sell(player.getName(), itemid, ppu, itemcount, enchants, durability, customname);
                 if (!wdbsuccess) {
                     sender.sendMessage("Error selling item.");
                     invent.addItem(toberemoved);
@@ -615,34 +574,25 @@ public class WookieeCommandExecutor implements CommandExecutor {
             return true;
         }
         if (arrargs != null && arrargs.size() > 1) {
-            int page = 1;
-            int n = arrargs.size();
             if (confirmed == true) {
-                String[] itemdb;
-                itemdb = wdb.sqlBuy(Integer.parseInt(arrargs.get(1)));
-                if (itemdb != null) {
-                    if (!itemdb[0].equals("false")) {
-                        int count = Integer.parseInt(itemdb[2]);
-                        int amount = Integer.parseInt(itemdb[2]);
-                        if (amount < 1) {
-                            return false;
-                        }
-                        wdb.sqlChestAdd(itemdb, Integer.parseInt(itemdb[2]), sender.getName(), true);
-                    }
+                WDBEntry wde;
+                wde = wdb.getTrade(Integer.parseInt(arrargs.get(1)));
+                if (wde != null) {
+                    wdb.addToMailbox(wde, wde.getAmount(), sender.getName());
                 } else {
                     sender.sendMessage("Nothing to cancel.");
                 }
                 return true;
             } else {
                 if (isInteger(arrargs.get(1))) {
-                    ArrayList<List<String>> searcharr;
-                    searcharr = wdb.sqlTradeSearch(Integer.parseInt(arrargs.get(1)), "-cancel", page);
-                    if (!searcharr.isEmpty()) {
+                    WDBEntry wde;
+                    wde = wdb.getTrade(Integer.parseInt(arrargs.get(1)));
+                    if (wde != null) {
                         errormsg = canTrade(player, "cancel.other");
-                        if (searcharr.get(0).get(4).equals(sender.getName()) || errormsg == null) {
+                        if (wde.getPlayer().equals(sender.getName()) || errormsg == null) {
                             confMap(sender, arrargs);
-                            String itemname = Material.getMaterial(Integer.parseInt(searcharr.get(0).get(1))).toString();
-                            sender.sendMessage("Cancel trade? Item: " + itemname + ", amount: " + searcharr.get(0).get(2) + ", cost: " + searcharr.get(0).get(3));
+                            String itemname = Material.getMaterial(wde.getItemID()).toString();
+                            sender.sendMessage("Cancel trade? Item: " + itemname + ", amount: " + wde.getAmount() + ", cost: " + wde.getCost());
                             sender.sendMessage("To confirm, type: /wt confirm");
                             return true;
                         } else {
@@ -760,18 +710,19 @@ public class WookieeCommandExecutor implements CommandExecutor {
     boolean cmdTest(CommandSender sender, Command cmd, String label, ArrayList<String> arrargs, boolean confirmed) {
         return true;
     }
-
+    void wdeDebug(WDBEntry wde){
+        plugin.getLogger().info(wde.toString());
+    }
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (cmd.getName().equalsIgnoreCase("wt") && args.length > 0) {
-            if (!(sender instanceof Player)) {
-                sender.sendMessage("This command can only be run by a player.");
-                return true;
-            }
             int n = args.length;
             int i = 0;
             boolean confirm;
-            Player player = (Player) sender;
+            Player player = null;
+            if ((sender instanceof Player)) {
+                player = (Player) sender;
+            }
             ArrayList<String> arrargs = new ArrayList<String>();
             String errormsg;
             int page = 1;
@@ -823,6 +774,10 @@ public class WookieeCommandExecutor implements CommandExecutor {
             switcher = cmdNum(arrargs.get(0));
             switch (switcher) {
                 case 0:     //search
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage("This command can only be run by a player.");
+                        return true;
+                    }
                     errormsg = canTrade(player, "search");
                     if (errormsg == null) {
                         return cmdSearch(sender, cmd, label, arrargs, confirm, page);
@@ -831,6 +786,10 @@ public class WookieeCommandExecutor implements CommandExecutor {
                         return true;
                     }
                 case 1:     //buy
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage("This command can only be run by a player.");
+                        return true;
+                    }
                     errormsg = canTrade(player, "buy");
                     if (errormsg == null) {
                         return cmdBuy(sender, cmd, label, arrargs, confirm);
@@ -839,6 +798,10 @@ public class WookieeCommandExecutor implements CommandExecutor {
                         return true;
                     }
                 case 2:     //order
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage("This command can only be run by a player.");
+                        return true;
+                    }
                     errormsg = canTrade(player, "order");
                     if (errormsg == null) {
                         return cmdOrder(sender, cmd, label, arrargs, confirm);
@@ -847,6 +810,10 @@ public class WookieeCommandExecutor implements CommandExecutor {
                         return true;
                     }
                 case 3:     //confirm
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage("This command can only be run by a player.");
+                        return true;
+                    }
                     errormsg = canTrade(player, "confirm");
                     if (errormsg == null) {
                         sender.sendMessage("Nothing to confirm");
@@ -856,8 +823,16 @@ public class WookieeCommandExecutor implements CommandExecutor {
                         return true;
                     }
                 case 4:     //mailbox
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage("This command can only be run by a player.");
+                        return true;
+                    }
                     return cmdMailbox(sender, cmd, label, arrargs, confirm);
                 case 5:     //sell
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage("This command can only be run by a player.");
+                        return true;
+                    }
                     errormsg = canTrade(player, "sell");
                     if (errormsg == null) {
                         return cmdSell(sender, cmd, label, arrargs, confirm);
@@ -867,16 +842,29 @@ public class WookieeCommandExecutor implements CommandExecutor {
                         return true;
                     }
                 case 6:     //cancel
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage("This command can only be run by a player.");
+                        return true;
+                    }
                     return cmdCancel(sender, cmd, label, arrargs, confirm);
                 case 7:     //version
                     errormsg = canTrade(player, "version");
                     if (errormsg == null) {
                         return cmdVersion(sender, cmd, label, arrargs, confirm);
                     } else {
-                        sender.sendMessage(ChatColor.RED + errormsg);
-                        return true;
+                        if (!(sender instanceof Player)) {
+                            sender.sendMessage(errormsg);
+                            return true;
+                        } else {
+                            sender.sendMessage(ChatColor.RED + errormsg);
+                            return true;
+                        }
                     }
                 case 8:     //page
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage("This command can only be run by a player.");
+                        return true;
+                    }
                     errormsg = canTrade(player, "page");
                     if (errormsg == null) {
                         sender.sendMessage("No pages to change.");
@@ -887,6 +875,30 @@ public class WookieeCommandExecutor implements CommandExecutor {
                     }
                 case 9:     //help
                     return cmdHelp(sender, cmd, label, arrargs, confirm);
+                case 10:
+                    if (arrargs.size() == 2) {
+                        if (arrargs.get(1).equals("debug")){
+                            wdb.getDebugInfo();
+                        }
+                        if (arrargs.get(1).equals("populate")) {
+                            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    wdb.sqlPopulate();
+                                }
+                            });
+                        }
+                        if (arrargs.get(1).equals("save")) {
+                            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    wdb.loadDatabases();
+                                }
+                            });
+                        }
+                    }
             }
         }
         return false;

@@ -37,7 +37,7 @@ public class WookieeWorldGuard {
         Location loc = player.getLocation();
         ApplicableRegionSet set = WGBukkit.getRegionManager(world).getApplicableRegions(loc);
         for (ProtectedRegion region : set) {
-            if (region.getId().equalsIgnoreCase(regionid)) {
+            if (region.getId().equals(regionid)) {
                 return true;
             }
         }

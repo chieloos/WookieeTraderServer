@@ -33,5 +33,4 @@ public class Economy_Wookonomy implements Economy{
     public boolean depositPlayer(String string, double d) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-    
 }

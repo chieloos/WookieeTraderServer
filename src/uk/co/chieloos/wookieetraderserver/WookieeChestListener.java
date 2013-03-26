@@ -69,13 +69,13 @@ public class WookieeChestListener implements Listener {
                         return;
                     }
                     String name = player.getName();
-                    ArrayList<List<String>> chestcontents = wdb.sqlChest(name);
+                    ArrayList<WDBEntry> mailboxcontents = wdb.getMailbox(name);
                     Inventory chest = Bukkit.createInventory(null, 27, name + " - Mailbox");
-                    if (!chestcontents.isEmpty()) {
+                    if (!mailboxcontents.isEmpty()) {
                         int i = 0;
                         Map<Enchantment, Integer> enchantments = new HashMap<Enchantment, Integer>();
-                        while (chestcontents.size() > i) {
-                            ItemStack item = new ItemStack(Integer.parseInt(chestcontents.get(i).get(1)), 1);
+                        while (mailboxcontents.size() > i) {
+                            ItemStack item = new ItemStack(mailboxcontents.get(i).getItemID(), 1);
                             boolean enchbook = false;
                             EnchantmentStorageMeta enchmeta = null;
                             ItemMeta itemmeta = null;
@@ -83,8 +83,8 @@ public class WookieeChestListener implements Listener {
                                 enchbook = true;
                                 enchmeta = (EnchantmentStorageMeta) item.getItemMeta();
                             }
-                            if (!chestcontents.get(i).get(4).equals("false")) {
-                                String enchstring = chestcontents.get(i).get(4);
+                            if (!mailboxcontents.get(i).getEnchants().equals("false")) {
+                                String enchstring = mailboxcontents.get(i).getEnchants();
                                 String[] encharr = enchstring.split(" ");
                                 String[] eachench;
                                 enchantments.clear();
@@ -106,13 +106,13 @@ public class WookieeChestListener implements Listener {
                                     item.setItemMeta(enchmeta);
                                 }
                             }
-                            if(!chestcontents.get(i).get(6).equals("false")){
+                            if(!mailboxcontents.get(i).getCustomName().equals("false")){
                                 itemmeta = item.getItemMeta();
-                                itemmeta.setDisplayName(chestcontents.get(i).get(6));
+                                itemmeta.setDisplayName(mailboxcontents.get(i).getCustomName());
                                 item.setItemMeta(itemmeta);
                             }
-                            item.setDurability(Short.parseShort(chestcontents.get(i).get(5)));
-                            ItemStack[] items = splitIntoStacks(item, Integer.parseInt(chestcontents.get(i).get(3)));
+                            item.setDurability((short) mailboxcontents.get(i).getDurability());
+                            ItemStack[] items = splitIntoStacks(item, mailboxcontents.get(i).getAmount());
                             chest.addItem(items);
                             i++;
                         }
@@ -186,8 +186,10 @@ public class WookieeChestListener implements Listener {
                         }
                         //plugin.getLogger().log(Level.INFO, "You took out {0} {1} From {2}''s Mailbox", new Object[]{howmany, itemid, user});
                         //plugin.getLogger().log(Level.INFO, "SELECT * FROM playerchest WHERE player = ''{0}'' AND itemid = ''{1}''", new Object[]{user, itemid});
-                        String found = wdb.sqlChestRemove(itemid, howmany, user, enchants, durability, customname);
-                        if ("true".equals(found)) {
+                        WDBEntry wde = new WDBEntry(customname, enchants, durability, 0, "", 0, itemid, 0);
+                        boolean found;
+                        found = wdb.removeFromMailbox(itemid, howmany, user, enchants, durability, customname);
+                        if (found) {
                             //plugin.getLogger().info("Found in database");
                         } else {
                             //plugin.getLogger().info("Not found in database");

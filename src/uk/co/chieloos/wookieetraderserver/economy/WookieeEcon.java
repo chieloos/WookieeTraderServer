@@ -32,7 +32,7 @@ public class WookieeEcon {
     }
 
     public void setupWookonomy() {
-        wookecon = new Economy_Wookonomy();
+        //wookecon = new Economy_Wookonomy(plugin);
     }
 
     public boolean giveMoney(String name, double amount) {
