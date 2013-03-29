@@ -69,9 +69,9 @@ public class WookieeChestListener implements Listener {
                         return;
                     }
                     String name = player.getName();
-                    ArrayList<WDBEntry> mailboxcontents = wdb.getMailbox(name);
+                    ArrayList<WDBEntry> mailboxcontents = wdb.searchMailbox(name);
                     Inventory chest = Bukkit.createInventory(null, 27, name + " - Mailbox");
-                    if (!mailboxcontents.isEmpty()) {
+                    if (mailboxcontents != null) {
                         int i = 0;
                         Map<Enchantment, Integer> enchantments = new HashMap<Enchantment, Integer>();
                         while (mailboxcontents.size() > i) {

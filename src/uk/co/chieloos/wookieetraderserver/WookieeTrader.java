@@ -37,12 +37,12 @@ public final class WookieeTrader extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        if (getServer().getPluginManager().getPlugin("WookieeItemNames") == null || getServer().getPluginManager().getPlugin("SQLibrary") == null) {
+        pdf = this.getDescription();
+        if (getServer().getPluginManager().getPlugin("WookieeItemNames") == null) {
             getLogger().log(Level.SEVERE, "Required dependency not found. Disabling {0}", pdf.getName());
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        pdf = this.getDescription();
         if (!wecon.setupEconomy()) {
             getLogger().log(Level.SEVERE, "No Vault dependency found. Disabling {0}", pdf.getName());
             getServer().getPluginManager().disablePlugin(this);
@@ -78,7 +78,7 @@ public final class WookieeTrader extends JavaPlugin {
                 wdb.saveDatabases();
                 wcfg.saveConfig();
             }
-        }, 600, 600);
+        }, 6000, 6000);
     }
 
     void loadDatabases() {

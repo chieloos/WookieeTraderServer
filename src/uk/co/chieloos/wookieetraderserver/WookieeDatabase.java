@@ -94,11 +94,6 @@ public class WookieeDatabase {
         accessdb.removeFromTrades(id);
     }
 
-    protected ArrayList<WDBEntry> getMailbox(String name) {
-        ArrayList<WDBEntry> list = new ArrayList(accessdb.searchMailbox(name));
-        return list;
-    }
-
     protected ArrayList<String> getMailboxList() {
         return accessdb.getMailboxList();
     }

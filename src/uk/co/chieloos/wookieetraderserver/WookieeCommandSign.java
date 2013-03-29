@@ -40,7 +40,7 @@ public class WookieeCommandSign implements Listener {
     public void onSignChange(SignChangeEvent event) {
         Player player = event.getPlayer();
         if ("[WTrader]".equals(event.getLine(0)) && !wperm.playerHasPermission(player, "WookieeTraderServer.sign.modify")) {
-            if (event.isCancelled()) {
+            if (!event.isCancelled()) {
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You don't have permission to make that sign.");
             }
