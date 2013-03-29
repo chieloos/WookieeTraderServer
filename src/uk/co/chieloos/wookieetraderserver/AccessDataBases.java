@@ -73,8 +73,8 @@ public class AccessDataBases {
             size = list.size();
             if (size - 1 >= end) {
                 page = new ArrayList<WDBEntry>(list.subList(start, end + 1));
-            } else if (size < start) {
-                page = new ArrayList<WDBEntry>(list.subList(start, size + 1));
+            } else if (size > start) {
+                page = new ArrayList<WDBEntry>(list.subList(start, size));
             }
             return page;
         }
@@ -101,8 +101,8 @@ public class AccessDataBases {
             size = list.size();
             if (size - 1 >= end) {
                 page = new ArrayList<WDBEntry>(list.subList(start, end + 1));
-            } else if (size < start) {
-                page = new ArrayList<WDBEntry>(list.subList(start, size + 1));
+            } else if (size > start) {
+                page = new ArrayList<WDBEntry>(list.subList(start, size));
             }
             return page;
         }
@@ -127,8 +127,8 @@ public class AccessDataBases {
         size = list.size();
         if (size - 1 >= end) {
             page = new ArrayList<WDBEntry>(list.subList(start, end + 1));
-        } else if (size < start) {
-            page = new ArrayList<WDBEntry>(list.subList(start, size + 1));
+        } else if (size > start) {
+            page = new ArrayList<WDBEntry>(list.subList(start, size));
         }
         return page;
     }

@@ -1,9 +1,10 @@
 name: WookieeTraderServer
 main: uk.co.chieloos.wookieetraderserver.WookieeTrader
-version: 0.2b
+version: 0.4
 authors: [chieloos]
-website: http://chieloos.co.uk/wookieetrader
-depend: [Vault, SQLibrary, WookieeItemNames]
+website: http://dev.bukkit.org/server-mods/wookieetraderserver/
+depend: [Vault, WookieeItemNames]
+softdepend: [WorldGuard, WorldEdit]
 description: Bukkit trading plugin.
 
 commands:

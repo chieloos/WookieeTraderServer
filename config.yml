@@ -1,5 +1,5 @@
 # Default Config.yml! -chieloos
-confver: 0.2
+confver: 1.0
 disabled: false
 use-wg-region: false
 wg-region-id: wts

@@ -34,13 +34,13 @@ public class WookieeCommandExecutor implements CommandExecutor {
     boolean cmdreturn;
     int switcher;
 
-    public WookieeCommandExecutor(WookieeTrader plugin, WookieeDatabase wdb, WookieeEcon wecon, WookieeConfig wcfg, WookieePerm wperm, WookieeWorldGuard _wwg) {
+    public WookieeCommandExecutor(WookieeTrader plugin, WookieeDatabase wdb, WookieeEcon wecon, WookieeConfig wcfg, WookieePerm wperm, WookieeWorldGuard wwg) {
         this.plugin = plugin;
         this.wdb = wdb;
         this.wecon = wecon;
         this.wcfg = wcfg;
         this.wperm = wperm;
-        wwg = _wwg;
+        this.wwg = wwg;
         win = new ItemNames(this.plugin.getLogger());
 
         cmdlist.add("search");      //0
@@ -277,19 +277,24 @@ public class WookieeCommandExecutor implements CommandExecutor {
                 int durability;
                 String durabilitypercent;
                 String enchants;
-
+                boolean plural;
                 while (searchsize > i) {
+                    plural = false;
                     enchants = formatEnchants(searcharr.get(i).getEnchants());
                     durability = getPercent(searcharr.get(i).getDurability(), searcharr.get(i).getItemID());
+                    if (searcharr.get(i).getAmount() > 1){
+                        plural = true;
+                    }
                     if (durability != -1) {
-                        itemname = win.getItemName(searcharr.get(i).getItemID(), 0);
+                        
+                        itemname = win.getItemName(searcharr.get(i).getItemID(), 0, plural);
                         if (durability != 100) {
                             durabilitypercent = "Dur: " + ChatColor.RED + durability + ChatColor.RESET + "%" + ", ";
                         } else {
                             durabilitypercent = "Dur: " + ChatColor.GREEN + durability + ChatColor.RESET + "%" + ", ";
                         }
                     } else {
-                        itemname = win.getItemName(searcharr.get(i).getItemID(), searcharr.get(i).getDurability());
+                        itemname = win.getItemName(searcharr.get(i).getItemID(), searcharr.get(i).getDurability(), plural);
                         durabilitypercent = "";
                     }
                     sender.sendMessage("id " + ChatColor.YELLOW + searcharr.get(i).getID() + ChatColor.RESET + ": " + searcharr.get(i).getAmount() + " " + ChatColor.DARK_GREEN + itemname + ChatColor.RESET + " for " + ChatColor.BLUE + searcharr.get(i).getCost() + ChatColor.RESET + " ea, " + durabilitypercent + "Seller: " + ChatColor.GOLD + searcharr.get(i).getPlayer());

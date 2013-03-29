@@ -8,6 +8,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import uk.co.chieloos.wookieetraderserver.economy.WookieeEcon;
 
+/* 
+ * This, being my first self taught java project attempt,
+ * may include slow or badly written code, or bad programming practices.
+ * These will be updated and/or corrected as I continue to learn.
+ * It does however work as intended, aside from the odd bugs that
+ * may be introduced during this plugin's lifespan.
+ */
+
 public final class WookieeTrader extends JavaPlugin {
 
     public final WookieeTrader plugin = this;
@@ -18,7 +26,7 @@ public final class WookieeTrader extends JavaPlugin {
     public final WookieeDatabase wdb = new WookieeDatabase(this, wecon, accessdb);
     public final WookieeWorldGuard wwg = new WookieeWorldGuard(this, wcfg);
     
-    protected static final String CONFIG_VERSION = "0.2";
+    protected static final String CONFIG_VERSION = "1.0";
     protected PluginManager manager;
     protected PluginDescriptionFile pdf;
 
