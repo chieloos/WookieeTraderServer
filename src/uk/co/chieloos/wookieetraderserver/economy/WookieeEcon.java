@@ -1,11 +1,9 @@
 package uk.co.chieloos.wookieetraderserver.economy;
 
+import java.text.DecimalFormat;
 import net.milkbowl.vault.economy.Economy;
-
 import org.bukkit.plugin.RegisteredServiceProvider;
-
 import uk.co.chieloos.wookieetraderserver.WookieeTrader;
-import uk.co.chieloos.wookieetraderserver.economy.plugins.Economy_Wookonomy;
 
 public class WookieeEcon {
 
@@ -35,27 +33,31 @@ public class WookieeEcon {
         //wookecon = new Economy_Wookonomy(plugin);
     }
 
-    public boolean giveMoney(String name, double amount) {
+    public boolean giveMoney(String name, int amount) {
         if (amount != 0) {
+            //double value = (double) amount / 100;
+            double d = (double) amount / 100;
+            DecimalFormat twoDForm = new DecimalFormat("#.##");
+            double value = Double.valueOf(twoDForm.format(d));
             if (amount < 0) {
                 if (econ != null) {
-                    if (econ.has(name, Math.abs(amount))) {
-                        econ.withdrawPlayer(name, Math.abs(amount));
+                    if (econ.has(name, Math.abs(value))) {
+                        econ.withdrawPlayer(name, Math.abs(value));
                         return true;
                     }
                 } else {
-                    if (wookecon.has(name, Math.abs(amount))) {
-                        wookecon.withdrawPlayer(name, Math.abs(amount));
+                    if (wookecon.has(name, Math.abs(value))) {
+                        wookecon.withdrawPlayer(name, Math.abs(value));
                         return true;
                     }
                 }
             } else {
                 if (econ != null) {
-                    econ.depositPlayer(name, amount);
+                    econ.depositPlayer(name, value);
                     econ.getBalance(name);
                     return true;
                 } else {
-                    wookecon.depositPlayer(name, amount);
+                    wookecon.depositPlayer(name, value);
                     wookecon.getBalance(name);
                     return true;
                 }

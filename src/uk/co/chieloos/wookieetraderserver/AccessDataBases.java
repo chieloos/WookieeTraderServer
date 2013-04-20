@@ -3,6 +3,7 @@ package uk.co.chieloos.wookieetraderserver;
 import java.io.*;
 import java.util.*;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AccessDataBases {
 
@@ -294,7 +295,7 @@ public class AccessDataBases {
                 listentry = list.get(i);
                 if (listentry.getCustomName().equals(wde.getCustomName()) && listentry.getEnchants().equals(wde.getEnchants()) && listentry.getDurability() == wde.getDurability() && listentry.getItemID() == wde.getItemID()) {
                     id = listentry.getID();
-                    plugin.getLogger().info("found: " + id);
+                    //plugin.getLogger().info("found: " + id);
                     found = true;
                     break;
                 }
@@ -337,7 +338,7 @@ public class AccessDataBases {
         return !error;
     }
 
-    synchronized boolean addToTrades(String customname, String enchants, int durability, String player, int amount, int itemid, double cost) {
+    synchronized boolean addToTrades(String customname, String enchants, int durability, String player, int amount, int itemid, int cost) {
         WDBEntry wde;
         WDBEntry newentry = null;
         int i = 0;
@@ -502,96 +503,272 @@ public class AccessDataBases {
         }
     }
 
-    synchronized void getMailboxDatabase() {
-        mailboxdbByID = new HashMap<Integer, WDBEntry>();
-        mailboxdbByPlayer = new HashMap<String, List<WDBEntry>>();
-        mailboxFile = new File(plugin.getDataFolder() + "/mailbox.wdb");
-        if (mailboxFile.exists()) {
-            try {
-                FileInputStream fis = new FileInputStream(mailboxFile);
-                ObjectInputStream ois = new ObjectInputStream(fis);
-                try {
-                    mailboxdbByID = (HashMap<Integer, WDBEntry>) ois.readObject();
-                } catch (ClassNotFoundException e) {
-                    mailboxdbByID = new HashMap<Integer, WDBEntry>();
-                    plugin.getLogger().log(Level.SEVERE, "Mailbox database file was corrupt.");
-                }
-                ois.close();
-            } catch (IOException ex) {
-                plugin.getLogger().log(Level.WARNING, null, ex);
-            }
-        }
-        if (mailboxdbByID.size() > 0) {
-            for (Map.Entry<Integer, WDBEntry> entry : mailboxdbByID.entrySet()) {
-
-                updateMailbox(entry.getValue(), true);
-            }
-        }
-    }
-
-    synchronized void getTradesDatabase() {
-        tradesdbByItemID = new HashMap<Integer, List<WDBEntry>>();
-        tradesdbByTime = new TreeMap<Long, List<WDBEntry>>();
-        tradesdbByPlayer = new HashMap<String, List<WDBEntry>>();
-        tradesdbByID = new HashMap<Integer, WDBEntry>();
-        tradesFile = new File(plugin.getDataFolder() + "/trades.wdb");
-        if (tradesFile.exists()) {
-            try {
-                FileInputStream fis = new FileInputStream(tradesFile);
-                ObjectInputStream ois = new ObjectInputStream(fis);
-                try {
-                    tradesdbByID = (HashMap<Integer, WDBEntry>) ois.readObject();
-                } catch (ClassNotFoundException e) {
-                    tradesdbByID = new HashMap<Integer, WDBEntry>();
-                    plugin.getLogger().log(Level.SEVERE, "Trades database file was corrupt.");
-                }
-                ois.close();
-            } catch (IOException ex) {
-                plugin.getLogger().log(Level.WARNING, null, ex);
-            }
-        }
-        if (tradesdbByID.size() > 0) {
-            for (Map.Entry<Integer, WDBEntry> entry : tradesdbByID.entrySet()) {
-
-                updateTrades(entry.getValue(), true);
-            }
-        }
-    }
-
-    void putMailboxDatabase() {
-        long start = System.currentTimeMillis();
-        try {
-            FileOutputStream fos = new FileOutputStream(plugin.getDataFolder() + "/mailbox.wdb");
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(mailboxdbByID);
-            oos.close();
-        } catch (IOException ex) {
-            plugin.getLogger().log(Level.WARNING, null, ex);
-        }
-        long fin = System.currentTimeMillis();
-        long total = fin - start;
-        //plugin.getLogger().log(Level.INFO, "Mailbox save time: {0}", new Object[]{total});
-    }
-
-    void putTradesDatabase() {
-        long start = System.currentTimeMillis();
-        try {
-            FileOutputStream fos = new FileOutputStream(plugin.getDataFolder() + "/trades.wdb");
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(tradesdbByID);
-            oos.close();
-        } catch (IOException ex) {
-            plugin.getLogger().log(Level.WARNING, null, ex);
-        }
-        long fin = System.currentTimeMillis();
-        long total = fin - start;
-        //plugin.getLogger().log(Level.INFO, "Trades save time: {0}", new Object[]{total});
-    }
-
     void debug() {
         System.out.println(Arrays.toString(tradesdbByID.entrySet().toArray()));
         System.out.println(Arrays.toString(tradesdbByItemID.entrySet().toArray()));
         System.out.println(Arrays.toString(tradesdbByPlayer.entrySet().toArray()));
         System.out.println(Arrays.toString(tradesdbByTime.entrySet().toArray()));
+    }
+
+    void putTradesDatabase() {
+        long start = System.currentTimeMillis();
+        //plugin.getLogger().info("Starting export");
+        FileWriter fw = null;
+        try {
+            File flatTradesFile = new File(plugin.getDataFolder() + "/trades.txt");
+            fw = new FileWriter(flatTradesFile.getAbsoluteFile());
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write("#MODIFYING THIS FILE MAY CORRUPT YOUR TRADES DATABASE.");
+            bw.newLine();
+            bw.write("#VER:1");
+            bw.newLine();
+            bw.write("#ID:ITEMID:DURABILITY:CUSTOMNAME:ENCHANTS:AMOUNT:COST:PLAYER:TIME");
+            if (tradesdbByID.size() > 0) {
+                for (Map.Entry<Integer, WDBEntry> entry : tradesdbByID.entrySet()) {
+                    WDBEntry wdb = entry.getValue();
+                    String output = wdb.getID() + ":" + wdb.getItemID() + ":" + wdb.getDurability() + ":" + wdb.getCustomName() + ":" + wdb.getEnchants() + ":" + wdb.getAmount() + ":" + wdb.getCost() + ":" + wdb.getPlayer() + ":" + wdb.getTime();
+                    bw.newLine();
+                    bw.write(output);
+                    //plugin.getLogger().info(output);
+                }
+            }
+            bw.close();
+        } catch (IOException ex) {
+            Logger.getLogger(AccessDataBases.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                fw.close();
+            } catch (IOException ex) {
+                Logger.getLogger(AccessDataBases.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        //plugin.getLogger().info("Finished export");
+        long fin = System.currentTimeMillis();
+        long total = fin - start;
+        //System.out.println(total);
+    }
+
+    void getTradesDatabase() {
+        long start = System.currentTimeMillis();
+        tradesdbByItemID = new HashMap<Integer, List<WDBEntry>>();
+        tradesdbByTime = new TreeMap<Long, List<WDBEntry>>();
+        tradesdbByPlayer = new HashMap<String, List<WDBEntry>>();
+        tradesdbByID = new HashMap<Integer, WDBEntry>();
+        BufferedReader br = null;
+        int ver = 0;
+        int errorCount = 0;
+        try {
+            String sCurrentLine;
+            String[] entry = {"null"};
+            File temp = new File(plugin.getDataFolder() + "/trades.txt");
+            if (!temp.exists()) {
+                return;
+            }
+            br = new BufferedReader(new FileReader(plugin.getDataFolder() + "/trades.txt"));
+
+            while ((sCurrentLine = br.readLine()) != null) {
+                if (!sCurrentLine.startsWith("#")) {
+                    entry = sCurrentLine.split(":");
+                    //System.out.println(entry.toString());
+                } else {
+                    if (sCurrentLine.contains("VER")) {
+                        ver = Integer.parseInt(sCurrentLine.replace("#VER:", ""));
+                    }
+                }
+                if (!entry[0].equalsIgnoreCase("null")) {
+                    switch (ver) {
+                        case 0:
+                            break;
+                        case 1:
+                            String customname,
+                             enchants,
+                             player;
+                            int durability,
+                             amount,
+                             itemid,
+                             cost,
+                             id;
+                            long time;
+
+                            //plugin.getLogger().info(entry[0] + ":" + entry[1] + ":" + entry[2] + ":" + entry[3] + ":" + entry[4] + ":" + entry[5] + ":" + entry[6] + ":" + entry[7] + ":" + entry[8]);
+                            try {
+                                customname = entry[3];
+                                enchants = entry[4];
+                                durability = Integer.parseInt(entry[2]);
+                                time = Long.parseLong(entry[8]);
+                                player = entry[7];
+                                amount = Integer.parseInt(entry[5]);
+                                itemid = Integer.parseInt(entry[1]);
+                                id = Integer.parseInt(entry[0]);
+                                cost = Integer.parseInt(entry[6]);
+                                WDBEntry wde = new WDBEntry(customname, enchants, durability, time, player, amount, itemid, id, cost);
+                                tradesdbByID.put(id, wde);
+                            } catch (Exception e) {
+                                errorCount++;
+                            }
+                    }
+                }
+            }
+            if (errorCount > 0) {
+                plugin.getLogger().log(Level.WARNING, "{0} Trades Database entries were corrupt", new Object[]{errorCount});
+            }
+            if (tradesdbByID.size() > 0) {
+                for (Map.Entry<Integer, WDBEntry> ent : tradesdbByID.entrySet()) {
+
+                    updateTrades(ent.getValue(), true);
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (br != null) {
+                    br.close();
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        long fin = System.currentTimeMillis();
+        long total = fin - start;
+        //System.out.println(total);
+    }
+
+    void putMailboxDatabase() {
+        long start = System.currentTimeMillis();
+        //plugin.getLogger().info("Starting export");
+        FileWriter fw = null;
+        try {
+            File flatTradesFile = new File(plugin.getDataFolder() + "/mailbox.txt");
+            fw = new FileWriter(flatTradesFile.getAbsoluteFile());
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write("#MODIFYING THIS FILE MAY CORRUPT YOUR MAILBOX DATABASE.");
+            bw.newLine();
+            bw.write("#VER:1");
+            bw.newLine();
+            bw.write("#ID:ITEMID:DURABILITY:CUSTOMNAME:ENCHANTS:AMOUNT:PLAYER:TIME");
+            if (mailboxdbByID.size() > 0) {
+                for (Map.Entry<Integer, WDBEntry> entry : mailboxdbByID.entrySet()) {
+                    WDBEntry wdb = entry.getValue();
+                    String output = wdb.getID() + ":" + wdb.getItemID() + ":" + wdb.getDurability() + ":" + wdb.getCustomName() + ":" + wdb.getEnchants() + ":" + wdb.getAmount() + ":" + wdb.getPlayer() + ":" + wdb.getTime();
+                    bw.newLine();
+                    bw.write(output);
+                    //plugin.getLogger().info(output);
+                }
+            }
+            bw.close();
+        } catch (IOException ex) {
+            Logger.getLogger(AccessDataBases.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                fw.close();
+            } catch (IOException ex) {
+                Logger.getLogger(AccessDataBases.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        //plugin.getLogger().info("Finished export");
+        long fin = System.currentTimeMillis();
+        long total = fin - start;
+        //System.out.println(total);
+    }
+
+    void getMailboxDatabase() {
+        long start = System.currentTimeMillis();
+        mailboxdbByPlayer = new HashMap<String, List<WDBEntry>>();
+        mailboxdbByID = new HashMap<Integer, WDBEntry>();
+        BufferedReader br = null;
+        int ver = 0;
+        int errorCount = 0;
+
+        String sCurrentLine;
+        String[] entry = {"null"};
+        File temp = new File(plugin.getDataFolder() + "/mailbox.txt");
+        if (!temp.exists()) {
+            return;
+        }
+        try {
+            br = new BufferedReader(new FileReader(plugin.getDataFolder() + "/mailbox.txt"));
+
+            while ((sCurrentLine = br.readLine()) != null) {
+                if (!sCurrentLine.startsWith("#")) {
+                    entry = sCurrentLine.split(":");
+                    //System.out.println(entry.toString());
+                } else {
+                    if (sCurrentLine.contains("VER")) {
+                        ver = Integer.parseInt(sCurrentLine.replace("#VER:", ""));
+                    }
+                }
+                if (!entry[0].equalsIgnoreCase("null")) {
+                    switch (ver) {
+                        case 0:
+                            break;
+                        case 1:
+                            String customname,
+                             enchants,
+                             player;
+                            int durability,
+                             amount,
+                             itemid,
+                             id;
+                            long time;
+
+                            //plugin.getLogger().info(entry[0] + ":" + entry[1] + ":" + entry[2] + ":" + entry[3] + ":" + entry[4] + ":" + entry[5] + ":" + entry[6] + ":" + entry[7] + ":" + entry[8]);
+                            try {
+                                customname = entry[3];
+                                enchants = entry[4];
+                                durability = Integer.parseInt(entry[2]);
+                                time = Long.parseLong(entry[8]);
+                                player = entry[7];
+                                amount = Integer.parseInt(entry[5]);
+                                itemid = Integer.parseInt(entry[1]);
+                                id = Integer.parseInt(entry[0]);
+                                WDBEntry wde = new WDBEntry(customname, enchants, durability, time, player, amount, itemid, id);
+                                mailboxdbByID.put(id, wde);
+                            } catch (Exception e) {
+                                errorCount++;
+                            }
+                            break;
+                    }
+                }
+            }
+            if (errorCount > 0) {
+                plugin.getLogger().log(Level.WARNING, "{0} mailbox database entries were corrupt", new Object[]{errorCount});
+            }
+            if (mailboxdbByID.size() > 0) {
+                for (Map.Entry<Integer, WDBEntry> ent : mailboxdbByID.entrySet()) {
+
+                    updateMailbox(ent.getValue(), true);
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (br != null) {
+                    br.close();
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        long fin = System.currentTimeMillis();
+        long total = fin - start;
+        //System.out.println(total);
+    }
+
+    void clearTradesDB() {
+        tradesdbByItemID = new HashMap<Integer, List<WDBEntry>>();
+        tradesdbByTime = new TreeMap<Long, List<WDBEntry>>();
+        tradesdbByPlayer = new HashMap<String, List<WDBEntry>>();
+        tradesdbByID = new HashMap<Integer, WDBEntry>();
+        tradecounter = 0;
+    }
+
+    void clearMailboxDB() {
+        mailboxdbByID = new HashMap<Integer, WDBEntry>();
+        mailboxdbByPlayer = new HashMap<String, List<WDBEntry>>();
+        mailboxcounter = 0;
     }
 }

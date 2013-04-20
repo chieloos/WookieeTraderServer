@@ -49,7 +49,7 @@ public class WookieeDatabase {
         return accessdb.getTrade(id);
     }
 
-    protected boolean sell(String player, int itemid, double cost, int stack, String enchants, int durability, String customname) {
+    protected boolean sell(String player, int itemid, int cost, int stack, String enchants, int durability, String customname) {
         return accessdb.addToTrades(customname, enchants, durability, player, stack, itemid, cost);
     }
 
@@ -72,7 +72,7 @@ public class WookieeDatabase {
             itemid = rand.nextInt(29) + 1;
             Integer name = rand.nextInt(9) + 1;
             player = name.toString();
-            int time = (int) System.currentTimeMillis();
+            long time = System.currentTimeMillis();
             wde = new WDBEntry(customname, enchants, durability, time, player, stack, itemid, i, cost);
             dbList.add(wde);
             i++;
@@ -109,19 +109,21 @@ public class WookieeDatabase {
         boolean success = true;
         boolean error;
         error = accessdb.addToMailbox(wde, amount, player);
-        if (error){
+        if (error) {
             success = false;
         }
         amount = amount * -1;
         error = accessdb.addToTrades(wde.getCustomName(), wde.getEnchants(), wde.getDurability(), wde.getPlayer(), amount, wde.getItemID(), wde.getCost());
-        if (error){
+        if (error) {
             success = false;
         }
         return success;
     }
-    protected ArrayList<WDBEntry> searchMailbox(String player){
+
+    protected ArrayList<WDBEntry> searchMailbox(String player) {
         return accessdb.searchMailbox(player);
     }
+
     protected List<WDBEntry> searchTrades(int itemid, String player, int page) {
         if (itemid != -1) {
             //plugin.getLogger().info("Searching by itemid");
@@ -144,7 +146,14 @@ public class WookieeDatabase {
         }
         return accessdb.getTradeCount();
     }
-    void getDebugInfo(){
+
+    void getDebugInfo() {
         accessdb.debug();
+    }
+    void clearTrades(){
+        accessdb.clearTradesDB();
+    }
+    void clearMailbox(){
+        accessdb.clearMailboxDB();
     }
 }

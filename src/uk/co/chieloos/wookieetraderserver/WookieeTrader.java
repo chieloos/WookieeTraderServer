@@ -14,6 +14,7 @@ import uk.co.chieloos.wookieetraderserver.economy.WookieeEcon;
  * These will be updated and/or corrected as I continue to learn.
  * It does however work as intended, aside from the odd bugs that
  * may be introduced during this plugin's lifespan.
+ * v0.4b
  */
 
 public final class WookieeTrader extends JavaPlugin {
@@ -25,6 +26,7 @@ public final class WookieeTrader extends JavaPlugin {
     public final AccessDataBases accessdb = new AccessDataBases(plugin, wcfg);
     public final WookieeDatabase wdb = new WookieeDatabase(this, wecon, accessdb);
     public final WookieeWorldGuard wwg = new WookieeWorldGuard(this, wcfg);
+    public final WookieeMailbox wmb = new WookieeMailbox(this, wdb);
     
     protected static final String CONFIG_VERSION = "1.0";
     protected PluginManager manager;
@@ -55,8 +57,8 @@ public final class WookieeTrader extends JavaPlugin {
         manager = this.getServer().getPluginManager();
         wcfg.loadConfig();
         manager.registerEvents(new WookieeCommandSign(this, wperm), this);
-        manager.registerEvents(new WookieeChestListener(this, wdb, wperm), this);
-        getCommand("wt").setExecutor(new WookieeCommandExecutor(this, wdb, wecon, wcfg, wperm, wwg));
+        manager.registerEvents(new WookieeChestListener(this, wdb, wperm, wmb), this);
+        getCommand("wt").setExecutor(new WookieeCommandExecutor(this, wdb, wecon, wcfg, wperm, wwg, wmb));
         getCommand("wt-admin").setExecutor(new WookieeAdminCE(this, wdb, wecon, wcfg, wperm));
         loadDatabases();
         accessdb.getCounters();
@@ -66,10 +68,10 @@ public final class WookieeTrader extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        //wdb.saveDatabases();
-        //saveConfig();
+        wdb.saveDatabases();
+        saveConfig();
     }
-
+    
     void startDatabaseSaves() {
         getServer().getScheduler().runTaskTimerAsynchronously(this, new Runnable() {
 

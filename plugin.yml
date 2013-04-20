@@ -1,6 +1,6 @@
 name: WookieeTraderServer
 main: uk.co.chieloos.wookieetraderserver.WookieeTrader
-version: 0.4
+version: 0.5
 authors: [chieloos]
 website: http://dev.bukkit.org/server-mods/wookieetraderserver/
 depend: [Vault, WookieeItemNames]
@@ -43,6 +43,7 @@ permissions:
     default: op
     children:
       WookieeTraderServer.wt-admin.stop.*: true
+      WookieeTraderServer.wt-admin.clear-databases: true
     
   WookieeTraderServer.wt.basic.*:
     description: Gives access to all basic WookieeTraderServer commands
@@ -140,4 +141,8 @@ permissions:
     default: op
   WookieeTraderServer.wt-admin.stop.permanent:
     description: Disables WookieeTraderServer. Will not load again
+    default: op
+    
+  WookieeTraderServer.wt-admin.clear-databases:
+    description: Gives access to clearing of either database file
     default: op

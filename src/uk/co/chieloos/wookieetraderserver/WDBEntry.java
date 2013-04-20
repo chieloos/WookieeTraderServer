@@ -5,11 +5,10 @@ import java.util.Comparator;
 public class WDBEntry implements java.io.Serializable {
 
     private String customname, enchants, player;
-    private int durability, amount, itemid, id;
-    private double cost;
+    private int durability, amount, itemid, id, cost;
     private long time;
 
-    WDBEntry(String customname, String enchants, int durability, long time, String player, int amount, int itemid, int id, double cost) {
+    WDBEntry(String customname, String enchants, int durability, long time, String player, int amount, int itemid, int id, int cost) {
         this.customname = customname;
         this.enchants = enchants;
         this.durability = durability;
@@ -76,7 +75,7 @@ public class WDBEntry implements java.io.Serializable {
         return id;
     }
 
-    double getCost() {
+    int getCost() {
         return cost;
     }
 
@@ -112,7 +111,7 @@ public class WDBEntry implements java.io.Serializable {
         hash = 17 * hash + this.amount;
         hash = 17 * hash + this.itemid;
         hash = 17 * hash + this.id;
-        hash = 17 * hash + (int) (Double.doubleToLongBits(this.cost) ^ (Double.doubleToLongBits(this.cost) >>> 32));
+        hash = 17 * hash + this.cost;
         hash = 17 * hash + (int) (this.time ^ (this.time >>> 32));
         return hash;
     }
@@ -139,8 +138,8 @@ public class WDBEntry implements java.io.Serializable {
 
             @Override
             public int compare(WDBEntry o1, WDBEntry o2) {
-                Double cost1 = o1.cost;
-                Double cost2 = o2.cost;
+                Integer cost1 = o1.cost;
+                Integer cost2 = o2.cost;
                 int costCompare = cost1.compareTo(cost2);
                 if (costCompare != 0) {
                     return costCompare;
@@ -169,8 +168,8 @@ public class WDBEntry implements java.io.Serializable {
                 if (iidCompare != 0) {
                     return iidCompare;
                 } else {
-                    Double cost1 = o1.cost;
-                    Double cost2 = o2.cost;
+                    Integer cost1 = o1.cost;
+                    Integer cost2 = o2.cost;
                     int costCompare = cost1.compareTo(cost2);
                     if (costCompare != 0) {
                         return costCompare;
