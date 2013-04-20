@@ -55,7 +55,6 @@ public class WookieeCommandExecutor implements CommandExecutor {
         cmdlist.add("version");     //7
         cmdlist.add("page");        //8
         cmdlist.add("help");        //9
-        cmdlist.add("test");
         permlist.put("search", "WookieeTraderServer.wt.basic.search");
         permlist.put("buy", "WookieeTraderServer.wt.basic.buy");
         permlist.put("order", "WookieeTraderServer.wt.basic.order");
@@ -871,37 +870,6 @@ public class WookieeCommandExecutor implements CommandExecutor {
                     }
                 case 9:     //help
                     return cmdHelp(sender, cmd, label, arrargs, confirm);
-                case 10:
-                    if (arrargs.size() > 1) {
-                        if (arrargs.get(1).equalsIgnoreCase("export")) {
-                            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    wdb.saveDatabases();
-                                }
-                            });
-                        }
-                        if (arrargs.get(1).equalsIgnoreCase("import")) {
-                            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    wdb.loadDatabases();
-                                }
-                            });
-                        }
-                        if (arrargs.get(1).equalsIgnoreCase("populate")) {
-                            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    wdb.testPopulate();
-                                }
-                            });
-                        }
-                    }
-
             }
         }
         return false;
