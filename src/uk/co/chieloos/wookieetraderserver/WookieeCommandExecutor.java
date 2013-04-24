@@ -313,8 +313,8 @@ public class WookieeCommandExecutor implements CommandExecutor {
                         itemname = win.getItemName(searcharr.get(i).getItemID(), searcharr.get(i).getDurability(), plural);
                         durabilitypercent = "";
                     }
-                    int quotient = i / 100;
-                    int remainder = i % 100;
+                    int quotient = searcharr.get(i).getCost() / 100;
+                    int remainder = searcharr.get(i).getCost() % 100;
                     String cost = quotient + "." + remainder;
                     sender.sendMessage("id " + ChatColor.YELLOW + searcharr.get(i).getID() + ChatColor.RESET + ": " + searcharr.get(i).getAmount() + " " + ChatColor.DARK_GREEN + itemname + ChatColor.RESET + " for " + ChatColor.BLUE + cost + ChatColor.RESET + " ea, " + durabilitypercent + "Seller: " + ChatColor.GOLD + searcharr.get(i).getPlayer());
                     if (!enchants.equals("")) {

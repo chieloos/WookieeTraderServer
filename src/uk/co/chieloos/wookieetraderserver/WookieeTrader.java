@@ -14,7 +14,6 @@ import uk.co.chieloos.wookieetraderserver.economy.WookieeEcon;
  * These will be updated and/or corrected as I continue to learn.
  * It does however work as intended, aside from the odd bugs that
  * may be introduced during this plugin's lifespan.
- * v0.4b
  */
 
 public final class WookieeTrader extends JavaPlugin {

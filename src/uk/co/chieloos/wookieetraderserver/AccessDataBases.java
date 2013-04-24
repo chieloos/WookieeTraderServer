@@ -13,8 +13,6 @@ public class AccessDataBases {
     private TreeMap<Long, List<WDBEntry>> tradesdbByTime;
     private HashMap<String, List<WDBEntry>> tradesdbByPlayer;
     private HashMap<Integer, WDBEntry> tradesdbByID;
-    private File tradesFile = null;
-    private File mailboxFile = null;
     private WookieeTrader plugin;
     private WookieeConfig wcfg;
     private int tradecounter;
@@ -718,8 +716,8 @@ public class AccessDataBases {
                                 customname = entry[3];
                                 enchants = entry[4];
                                 durability = Integer.parseInt(entry[2]);
-                                time = Long.parseLong(entry[8]);
-                                player = entry[7];
+                                time = Long.parseLong(entry[7]);
+                                player = entry[6];
                                 amount = Integer.parseInt(entry[5]);
                                 itemid = Integer.parseInt(entry[1]);
                                 id = Integer.parseInt(entry[0]);
@@ -727,6 +725,7 @@ public class AccessDataBases {
                                 mailboxdbByID.put(id, wde);
                             } catch (Exception e) {
                                 errorCount++;
+                                System.out.println(e);
                             }
                             break;
                     }

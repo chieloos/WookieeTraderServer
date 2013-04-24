@@ -44,6 +44,7 @@ permissions:
     children:
       WookieeTraderServer.wt-admin.stop.*: true
       WookieeTraderServer.wt-admin.clear-databases: true
+      WookieeTraderServer.wt-admin.help: true
     
   WookieeTraderServer.wt.basic.*:
     description: Gives access to all basic WookieeTraderServer commands
@@ -145,4 +146,8 @@ permissions:
     
   WookieeTraderServer.wt-admin.clear-databases:
     description: Gives access to clearing of either database file
+    default: op
+    
+  WookieeTraderServer.wt-admin.help:
+    description: Gives access to the admin help commands
     default: op
